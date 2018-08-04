@@ -1,6 +1,6 @@
 {
   "name": "protractor-rerun",
-  "version": "0.0.2-beta",
+  "version": "0.0.4-beta",
   "bin": {
     "protractor-rerun": "./bin/rerun"
   },

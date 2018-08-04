@@ -7,6 +7,7 @@ const argv = require('minimist')(process.argv.slice(2));
 const sleep = (time) => new Promise(res => setTimeout(res, time))
 
 
+let stdOutAnalize = (stack) => true
 let maxSession = argv.sessionsCount || 5
 let rerunCount = argv.count || 2
 let configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
@@ -41,7 +42,7 @@ const runPromise = (cmd) => new Promise((res) => {
   proc.stdout.on('data', (data) => {fullStack += data.toString()})
 
   proc.on('close', (code) => {
-    if(code !== 0) {
+    if(code !== 0 && stdOutAnalize(fullStack)) {
       res(cmd)
     } res(null)
   })
@@ -68,7 +69,9 @@ async function exeRun(runArr, failArr = []) {
       upperRun()
       asserter = setInterval(upperRun, 10000)
     }
+
     tryRerun()
+
     do {
       const runMap = runSuits.splice(0, maxSession - currentSessionCount).map(run => runPromise(run))
       currentSessionCount += runMap.length
@@ -94,8 +97,8 @@ async function exeRun(runArr, failArr = []) {
 
 
 module.exports = {
-  getReruner: function({maxSession = 5, rerunCount = 2}) {
-    maxSession = maxSession; rerunCount = rerunCount
+  getReruner: function({maxSession = 5, rerunCount = 2, stackAnalize = (stack) => true}) {
+    maxSession = maxSession; rerunCount = rerunCount; stdOutAnalize = stackAnalize
     return exeRun
   },
   getSpecCommands: function(pathToSpecDir, getRunCommandPattern) {
