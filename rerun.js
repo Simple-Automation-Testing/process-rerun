@@ -68,7 +68,7 @@ async function exeRun(runArr, failArr = []) {
       upperRun()
       asserter = setInterval(upperRun, 10000)
     }
-
+    tryRerun()
     do {
       const runMap = runSuits.splice(0, maxSession - currentSessionCount).map(run => runPromise(run))
       currentSessionCount += runMap.length
