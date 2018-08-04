@@ -94,4 +94,4 @@ async function exeRun(runArr, failArr = []) {
   return failedTests
 }
 
-exeRun()
+module.exports = exeRun
