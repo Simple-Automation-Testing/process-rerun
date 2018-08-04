@@ -56,9 +56,7 @@ async function exeRun(runArr, failArr = []) {
   async function runCommandsArr(runnCommandsArr, failedArr) {
     if(maxSession > currentSessionCount && runnCommandsArr.length) {
       currentSessionCount += 1
-      console.log(currentSessionCount, 'here , !', runnCommandsArr.length)
       const result = await runPromise(runnCommandsArr.splice(0, 1)[0]).catch(console.error)
-      console.log(result)
       if(result) {failedArr.push(result)}
       currentSessionCount -= 1
     }
@@ -68,7 +66,8 @@ async function exeRun(runArr, failArr = []) {
     const asserter = setInterval(() => runCommandsArr(runSuits, failedRun), 1000)
 
     do {
-      await runCommandsArr(runSuits, failedRun)
+      if(runSuits.length) {await runCommandsArr(runSuits, failedRun)}
+      if(currentSessionCount) await (() => new Promise((res) => setTimeout(res, 2500)))()
     } while(runSuits.length || currentSessionCount)
 
     clearInterval(asserter)
