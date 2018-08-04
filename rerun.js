@@ -6,14 +6,12 @@ const argv = require('minimist')(process.argv.slice(2));
 
 const sleep = (time) => new Promise(res => setTimeout(res, time))
 
-
 let stdOutAnalize = (stack) => true
 let maxSession = argv.sessionsCount || 5
 let rerunCount = argv.count || 2
 let configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
 
 let currentSessionCount = 0
-
 
 const walkSync = function(dir, filelist = []) {
   const files = fs.readdirSync(dir)
@@ -51,45 +49,31 @@ const runPromise = (cmd) => new Promise((res) => {
 async function exeRun(runArr, failArr = []) {
   runArr = runArr || walkSync(specsDir).map(getRunCommand)
 
-  let currentSubRun = 0
-  async function performRun(runSuits, failedRun) {
+  const failedTests = await new Array(rerunCount).join('_').split('_').reduce((resolver) => {
+    return resolver.then(resolvedArr => performRun(resolvedArr, []).then(failedArr => failedArr))
+  }, Promise.resolve(runArr))
 
-    let asserter = null
-    function tryRerun(runsArr, pushArr) {
-      const upperRun = async () => {
-        const runArr = runsArr.splice(0, maxSession - currentSessionCount).map(run => runPromise(run))
-        currentSubRun += runArr.length
-        currentSessionCount += currentSubRun
-        await Promise.all(runArr).then((cmd) => {
-          pushArr.push(...cmd.filter(cm => !!cm))
-          currentSubRun -= runArr.length
-          currentSessionCount -= currentSubRun
-        }).catch(console.error)
-      }
-      upperRun()
-      asserter = setInterval(upperRun, 10000)
+  async function runCommandsArr(runnCommandsArr, failedArr) {
+    if(maxSession > currentSessionCount && runnCommandsArr.length) {
+      currentSessionCount += 1
+      console.log(currentSessionCount, 'here , !', runnCommandsArr.length)
+      const result = await runPromise(runnCommandsArr.splice(0, 1)[0]).catch(console.error)
+      console.log(result)
+      if(result) {failedArr.push(result)}
+      currentSessionCount -= 1
     }
+  }
 
-    tryRerun()
+  async function performRun(runSuits, failedRun) {
+    const asserter = setInterval(() => runCommandsArr(runSuits, failedRun), 1000)
 
     do {
-      const runMap = runSuits.splice(0, maxSession - currentSessionCount).map(run => runPromise(run))
-      currentSessionCount += runMap.length
-      await Promise.all(runMap).then((cmds) => {
-        failedRun.push(...cmds.filter(cm => !!cm))
-        currentSessionCount -= runMap.length
-      }).catch(e => console.error(e.toString()))
-
-      if(runSuits.length) {await sleep(3000)}
-    } while(runSuits.length || currentSubRun)
+      await runCommandsArr(runSuits, failedRun)
+    } while(runSuits.length || currentSessionCount)
 
     clearInterval(asserter)
     return failedRun
   }
-
-  const failedTests = await new Array(rerunCount).join('_').split('_').reduce((resolver) => {
-    return resolver.then(resolvedArr => performRun(resolvedArr, []).then(failedArr => failedArr))
-  }, Promise.resolve(runArr))
 
   console.log(failedTests.length, 'Failed test count')
   return failedTests
@@ -97,8 +81,8 @@ async function exeRun(runArr, failArr = []) {
 
 
 module.exports = {
-  getReruner: function({maxSession = 5, rerunCount = 2, stackAnalize = (stack) => true}) {
-    maxSession = maxSession; rerunCount = rerunCount; stdOutAnalize = stackAnalize
+  getReruner: function({maxSessionCount = 5, specRerunCount = 2, stackAnalize = (stack) => true}, get) {
+    maxSession = maxSessionCount; rerunCount = specRerunCount; stdOutAnalize = stackAnalize
     return exeRun
   },
   getSpecCommands: function(pathToSpecDir, getRunCommandPattern) {
