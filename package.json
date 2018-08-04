@@ -1,7 +1,6 @@
 {
   "name": "protractor-rerun",
-  "version": "0.0.1",
-  "main": "",
+  "version": "0.0.1-beta",
   "bin": {
     "protractor-rerun": "./bin/rerun"
   },
@@ -11,6 +10,20 @@
     "tscw": "tsc -w",
     "validate": "npm ls"
   },
+  "author": {
+    "name": "Dmytro Potapov",
+    "email": "potapovd3012@gmail.com"
+  },
+
+  "keywords": [
+    "flaky",
+    "flaky-tests",
+    "protractor",
+    "selenium",
+    "rerun",
+    "failed-tests",
+    "protractor-rerun"
+  ],
   "devDependencies": {
     "@types/chai": "^4.1.2",
     "@types/mocha": "2.2.41",
