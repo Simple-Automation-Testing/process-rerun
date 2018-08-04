@@ -14,6 +14,7 @@ const maxSession = argv.sessionsCount || 5
 const rerunCount = argv.count || 2
 const configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
 const specsDir = argv.specsDir || path.resolve(process.cwd(), './specs')
+const debugMode = argv.debug
 
 let currentSessionCount = 0
 
@@ -41,7 +42,10 @@ const runPromise = (cmd) => new Promise((res) => {
   proc.on('exit', () => {clearInterval(watcher)})
   proc.stdout.on('data', (data) => {fullStack += data.toString()})
 
-  proc.on('close', (code) => {if(code !== 0) {res(cmd)} res(null)})
+  proc.on('close', (code) => {
+    if(debugMode) {console.log(fullStack)}
+    if(code !== 0) {res(cmd)} res(null)
+  })
 })
 
 async function exeRun(runArr, failArr = []) {
