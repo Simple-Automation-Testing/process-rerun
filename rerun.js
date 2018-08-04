@@ -47,7 +47,7 @@ const runPromise = (cmd) => new Promise((res) => {
   })
 })
 
-async function exeRun(runAr, failArr = []) {
+async function exeRun(runArr, failArr = []) {
   runArr = runArr || walkSync(specsDir).map(getRunCommand)
 
   let currentSubRun = 0
