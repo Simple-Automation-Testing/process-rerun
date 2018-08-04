@@ -7,13 +7,11 @@ const argv = require('minimist')(process.argv.slice(2));
 const sleep = (time) => new Promise(res => setTimeout(res, time))
 
 
-const maxSession = argv.sessionsCount || 5
-const rerunCount = argv.count || 2
-const configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
+let maxSession = argv.sessionsCount || 5
+let rerunCount = argv.count || 2
+let configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
 
 let currentSessionCount = 0
-
-const rerunArr = new Array(rerunCount).join('_').split('_')
 
 
 const walkSync = function(dir, filelist = []) {
@@ -30,7 +28,8 @@ const walkSync = function(dir, filelist = []) {
 
 const specsDir = path.resolve(__dirname, './specs')
 
-const getRunCommand = (file) => `${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${configFilePath} --specs ${file}`
+let getRunCommand = (file) => `${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${configFilePath} --specs ${file}`
+
 
 const runPromise = (cmd) => new Promise((res) => {
   const now = +Date.now(); const longestTest = 450000
@@ -43,13 +42,12 @@ const runPromise = (cmd) => new Promise((res) => {
 
   proc.on('close', (code) => {
     if(code !== 0) {
-      console.log(fullStack)
       res(cmd)
     } res(null)
   })
 })
 
-async function exeRun(runArr, failArr = []) {
+async function exeRun(runAr, failArr = []) {
   runArr = runArr || walkSync(specsDir).map(getRunCommand)
 
   let currentSubRun = 0
@@ -86,7 +84,7 @@ async function exeRun(runArr, failArr = []) {
     return failedRun
   }
 
-  const failedTests = await rerunArr.reduce((resolver) => {
+  const failedTests = await new Array(rerunCount).join('_').split('_').reduce((resolver) => {
     return resolver.then(resolvedArr => performRun(resolvedArr, []).then(failedArr => failedArr))
   }, Promise.resolve(runArr))
 
@@ -94,4 +92,13 @@ async function exeRun(runArr, failArr = []) {
   return failedTests
 }
 
-module.exports = exeRun
+
+module.exports = {
+  getReruner: function({maxSession = 5, rerunCount = 2}) {
+    maxSession = maxSession; rerunCount = rerunCount
+    return exeRun
+  },
+  getSpecCommands: function(pathToSpecDir, getRunCommandPattern) {
+    return walkSync(pathToSpecDir).map(getRunCommandPattern)
+  }
+}
