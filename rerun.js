@@ -3,12 +3,16 @@ const fs = require('fs')
 const {exec} = require('child_process')
 
 const argv = require('minimist')(process.argv.slice(2));
+
 const sleep = (time) => new Promise(res => setTimeout(res, time))
 
-const maxSession = 5
+
+const maxSession = argv.sessionsCount || 5
+const rerunCount = argv.count || 2
+const configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
+
 let currentSessionCount = 0
 
-const rerunCount = argv.count || 2
 const rerunArr = new Array(rerunCount).join('_').split('_')
 
 
@@ -26,7 +30,7 @@ const walkSync = function(dir, filelist = []) {
 
 const specsDir = path.resolve(__dirname, './specs')
 
-const getRunCommand = (file) => ` ${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${path.resolve(process.cwd(), './protractor.conf.js')} --specs ${file}`
+const getRunCommand = (file) => `${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${configFilePath} --specs ${file}`
 
 const runPromise = (cmd) => new Promise((res) => {
   const now = +Date.now(); const longestTest = 450000
@@ -37,9 +41,13 @@ const runPromise = (cmd) => new Promise((res) => {
   proc.on('exit', () => {clearInterval(watcher)})
   proc.stdout.on('data', (data) => {fullStack += data.toString()})
 
-  proc.on('close', (code) => {if(code !== 0) {res(cmd)} res(null)})
+  proc.on('close', (code) => {
+    if(code !== 0) {
+      console.log(fullStack)
+      res(cmd)
+    } res(null)
+  })
 })
-
 
 async function exeRun(runArr, failArr = []) {
   runArr = runArr || walkSync(specsDir).map(getRunCommand)

@@ -1,6 +1,11 @@
 {
   "name": "protractor-rerun",
   "version": "0.0.1",
+  "main": "",
+  "bin": {
+    "protractor-rerun": "./bin/rerun"
+  },
+  "main": "./rerun.js",
   "scripts": {
     "test:local": "protractor ./protractor.conf.js",
     "tscw": "tsc -w",
