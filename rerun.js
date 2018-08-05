@@ -4,6 +4,8 @@ const {exec} = require('child_process')
 
 const argv = require('minimist')(process.argv.slice(2));
 
+const failedByAssert = []
+
 const sleep = (time) => new Promise(res => setTimeout(res, time))
 
 let stdOutAnalize = (stack) => true
@@ -40,7 +42,9 @@ const runPromise = (cmd) => new Promise((res) => {
   proc.on('close', (code) => {
     if(code !== 0 && stdOutAnalize(fullStack)) {
       res(cmd)
-    } res(null)
+    } else {
+      if(code !== 0) {failedByAssert.push(cmd)}; res(null)
+    }
   })
 })
 
@@ -75,7 +79,7 @@ async function exeRun(runArr, failArr = []) {
   }
 
   console.log(failedTests.length, 'Failed test count')
-  return failedTests
+  return [...failedTests, ...failedByAssert]
 }
 
 
