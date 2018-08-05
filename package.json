@@ -1,6 +1,6 @@
 {
   "name": "protractor-rerun",
-  "version": "0.0.7-beta",
+  "version": "0.0.1",
   "bin": {
     "protractor-rerun": "./bin/rerun"
   },
@@ -14,7 +14,6 @@
     "name": "Dmytro Potapov",
     "email": "potapovd3012@gmail.com"
   },
-
   "keywords": [
     "flaky",
     "flaky-tests",

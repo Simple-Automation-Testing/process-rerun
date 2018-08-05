@@ -30,6 +30,7 @@ protractorRerun.getSpecCommands(specsDirBaseDocuments, (file) => formCommand('ch
 const rerunner = protractorRerun.getReruner({
   maxSessionCount: 12,
   specRerunCount: 3,
+  grepWord: 'somegrep',
   stackAnalize: (stack) => !stack.includes('ASSERTION ERROR')
 })
 

@@ -10,12 +10,11 @@ let stdOutAnalize = (stack) => true
 let maxSession = argv.sessionsCount || 5
 let rerunCount = argv.count || 2
 let configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
-
+let grepKeyword = ''
 let currentSessionCount = 0
 
 const walkSync = function(dir, filelist = []) {
   const files = fs.readdirSync(dir)
-
   files.forEach(function(file) {
     if(fs.statSync(path.join(dir, file)).isDirectory()) {
       filelist = walkSync(path.join(dir, file), filelist)
@@ -28,7 +27,6 @@ const walkSync = function(dir, filelist = []) {
 const specsDir = path.resolve(__dirname, './specs')
 
 let getRunCommand = (file) => `${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${configFilePath} --specs ${file}`
-
 
 const runPromise = (cmd) => new Promise((res) => {
   const now = +Date.now(); const longestTest = 450000
@@ -48,6 +46,8 @@ const runPromise = (cmd) => new Promise((res) => {
 
 async function exeRun(runArr, failArr = []) {
   runArr = runArr || walkSync(specsDir).map(getRunCommand)
+
+  runArr = runArr.filter(function(cmd) {return cmd.includes(grepKeyword)})
 
   const failedTests = await new Array(rerunCount).join('_').split('_').reduce((resolver) => {
     return resolver.then(resolvedArr => performRun(resolvedArr, []).then(failedArr => failedArr))
@@ -80,8 +80,8 @@ async function exeRun(runArr, failArr = []) {
 
 
 module.exports = {
-  getReruner: function({maxSessionCount = 5, specRerunCount = 2, stackAnalize = (stack) => true}, get) {
-    maxSession = maxSessionCount; rerunCount = specRerunCount; stdOutAnalize = stackAnalize
+  getReruner: function({maxSessionCount = 5, specRerunCount = 2, stackAnalize = (stack) => true, grepWord = ''}) {
+    maxSession = maxSessionCount; rerunCount = specRerunCount; stdOutAnalize = stackAnalize; grepKeyword = grepWord;
     return exeRun
   },
   getSpecCommands: function(pathToSpecDir, getRunCommandPattern) {
