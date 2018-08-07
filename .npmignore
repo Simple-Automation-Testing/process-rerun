@@ -5,3 +5,6 @@ po
 specs
 util
 config
+node_modules
+allure-results
+package-lock.json

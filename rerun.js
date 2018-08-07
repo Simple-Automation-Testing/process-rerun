@@ -14,6 +14,7 @@ let rerunCount = argv.count || 2
 let configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
 let grepKeyword = ''
 let currentSessionCount = 0
+let intervalPoll = 1000
 
 const walkSync = function(dir, filelist = []) {
   const files = fs.readdirSync(dir)
@@ -67,7 +68,7 @@ async function exeRun(runArr, failArr = []) {
   }
 
   async function performRun(runSuits, failedRun) {
-    const asserter = setInterval(() => runCommandsArr(runSuits, failedRun), 1000)
+    const asserter = setInterval(() => runCommandsArr(runSuits, failedRun), intervalPoll)
 
     do {
       if(runSuits.length) {await runCommandsArr(runSuits, failedRun)}
@@ -84,8 +85,12 @@ async function exeRun(runArr, failArr = []) {
 
 
 module.exports = {
-  getReruner: function({maxSessionCount = 5, specRerunCount = 2, stackAnalize = (stack) => true, grepWord = ''}) {
-    maxSession = maxSessionCount; rerunCount = specRerunCount; stdOutAnalize = stackAnalize; grepKeyword = grepWord;
+  getReruner: function({maxSessionCount = 5, specRerunCount = 2, stackAnalize = (stack) => true, grepWord = '', pollTime = 1000}) {
+    maxSession = maxSessionCount
+    rerunCount = specRerunCount
+    stdOutAnalize = stackAnalize
+    grepKeyword = grepWord
+    intervalPoll = isNaN(Number(pollTime)) ? 1000 : Number(intervalPoll)
     return exeRun
   },
   getSpecCommands: function(pathToSpecDir, getRunCommandPattern) {
