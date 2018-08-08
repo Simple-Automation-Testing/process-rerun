@@ -15,6 +15,7 @@ let configFilePath = argv.configPath || path.resolve(process.cwd(), './protracto
 let grepKeyword = ''
 let currentSessionCount = 0
 let intervalPoll = 1000
+let rerunCycleCB = async () => true
 
 const walkSync = function(dir, filelist = []) {
   const files = fs.readdirSync(dir)
@@ -75,6 +76,7 @@ async function exeRun(runArr, failArr = []) {
       if(currentSessionCount) await (() => new Promise((res) => setTimeout(res, 2500)))()
     } while(runSuits.length || currentSessionCount)
 
+    await rerunCycleCB()
     clearInterval(asserter)
     return failedRun
   }
@@ -85,11 +87,19 @@ async function exeRun(runArr, failArr = []) {
 
 
 module.exports = {
-  getReruner: function({maxSessionCount = 5, specRerunCount = 2, stackAnalize = (stack) => true, grepWord = '', pollTime = 1000}) {
+  getReruner: function({
+    maxSessionCount = 5,
+    specRerunCount = 2,
+    stackAnalize = (stack) => true,
+    everyCycleCallback = async () => true,
+    grepWord = '',
+    pollTime = 1000}) {
+
     maxSession = maxSessionCount
     rerunCount = specRerunCount
     stdOutAnalize = stackAnalize
     grepKeyword = grepWord
+    rerunCycleCB = everyCycleCallback
     intervalPoll = isNaN(Number(pollTime)) ? 1000 : Number(intervalPoll)
     return exeRun
   },

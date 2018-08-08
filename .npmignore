@@ -7,4 +7,5 @@ util
 config
 node_modules
 allure-results
+protractor.conf.js
 package-lock.json
