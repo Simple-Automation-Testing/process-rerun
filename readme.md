@@ -28,10 +28,12 @@ const formCommand = (browser, filePath) => {
 protractorRerun.getSpecCommands(specsDirBaseDocuments, (file) => formCommand('chrome', file)),
 
 const rerunner = protractorRerun.getReruner({
+  everyCycleCallback: async () => true,
+  stackAnalize: (stack) => !stack.includes('ASSERTION ERROR'),
+  pollTime:1000,
   maxSessionCount: 12,
   specRerunCount: 3,
-  grepWord: 'somegrep',
-  stackAnalize: (stack) => !stack.includes('ASSERTION ERROR')
+  grepWord: 'somegrep'
 })
 
 rerunner(protractorRerun.getSpecCommands('./specs', (file) => formCommand('chrome', file)))
