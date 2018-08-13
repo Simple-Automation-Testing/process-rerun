@@ -3,7 +3,7 @@ const fs = require('fs')
 const {exec} = require('child_process')
 
 const argv = require('minimist')(process.argv.slice(2));
-
+const sleep = (time) => new Promise((res) => setTimeout(res, time))
 const failedByAssert = []
 
 const sleep = (time) => new Promise(res => setTimeout(res, time))
@@ -28,10 +28,8 @@ const walkSync = function(dir, filelist = []) {
   return filelist
 }
 
-const specsDir = path.resolve(__dirname, './specs')
-
+let specsDir = path.resolve(process.cwd(), './specs')
 let getRunCommand = (file) => `${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${configFilePath} --specs ${file}`
-
 const runPromise = (cmd) => new Promise((res) => {
   const now = +Date.now(); const longestTest = 450000
   const proc = exec(cmd)
@@ -40,6 +38,7 @@ const runPromise = (cmd) => new Promise((res) => {
 
   proc.on('exit', () => {clearInterval(watcher)})
   proc.stdout.on('data', (data) => {fullStack += data.toString()})
+  proc.on('error', (e) => {console.error(e)})
 
   proc.on('close', (code) => {
     if(code !== 0 && stdOutAnalize(fullStack)) {
@@ -73,7 +72,7 @@ async function exeRun(runArr, failArr = []) {
 
     do {
       if(runSuits.length) {await runCommandsArr(runSuits, failedRun)}
-      if(currentSessionCount) await (() => new Promise((res) => setTimeout(res, 2500)))()
+      if(currentSessionCount) {await sleep(2500)}
     } while(runSuits.length || currentSessionCount)
 
     await rerunCycleCB()

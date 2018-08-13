@@ -5,7 +5,7 @@ process.title = 'protractor-rerun'
 const path = require('path')
 const fs = require('fs')
 const {exec} = require('child_process')
-
+const sleep = (time) => new Promise((res) => setTimeout(res, time))
 const argv = require('minimist')(process.argv.slice(2));
 
 
@@ -29,7 +29,7 @@ const walkSync = function(dir, filelist = []) {
   return filelist
 }
 
-const specsDir = path.resolve(process.cwd(), './specs')
+let specsDir = path.resolve(process.cwd(), './specs')
 
 let getRunCommand = (file) => `${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${configFilePath} --specs ${file}`
 
@@ -70,14 +70,13 @@ async function exeRun(runArr, failArr = []) {
 
     do {
       if(runSuits.length) {await runCommandsArr(runSuits, failedRun)}
-      if(currentSessionCount) await (() => new Promise((res) => setTimeout(res, 2500)))()
+      if(currentSessionCount) {await sleep(2500)}
     } while(runSuits.length || currentSessionCount)
 
     clearInterval(asserter)
     return failedRun
   }
 
-  console.log(failedTests.length, 'Failed test count')
   return failedTests
 }
 
