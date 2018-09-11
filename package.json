@@ -1,8 +1,12 @@
 {
   "name": "protractor-rerun",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "bin": {
     "protractor-rerun": "./bin/rerun"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/potapovDim/protractor-rerun.git"
   },
   "main": "./rerun.js",
   "scripts": {
