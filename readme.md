@@ -1,6 +1,5 @@
 Rerun failed tests
 
-
 default maxSessionCount is 5, for open 5 processes in parralel mode <br>
 default specRerunCount is 3, failed tests will have 3 attempts <br>
 default configPath is ./protractor.conf.js<br>

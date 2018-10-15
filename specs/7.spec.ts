@@ -9,6 +9,7 @@ describe('Spec 7 describe', () => {
 
   it(`Spec 8 it`, async () => {
     await new BasePo().setInput('#lst-ib', 'test spec 5')
+    expect('true').to.eql({ test___111: 112321241240129940219 })
   })
 })
 
