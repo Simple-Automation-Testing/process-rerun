@@ -1,39 +1,66 @@
-Rerun failed tests
+What is the problem ?
+When some process failed we need tool for rerun that process controled times with some params.
+In common cases we use protractor so next example for protractor
 
-default maxSessionCount is 5, for open 5 processes in parralel mode <br>
-default specRerunCount is 3, failed tests will have 3 attempts <br>
-default configPath is ./protractor.conf.js<br>
-default specsDir is ./spec <br>
-default debug is false <br>
-
-Usage from command line
-```sh
-$ ./node_modules/.bin/protractor-rerun --sessionsCount 8 --count 3 --configPath ./path/to/your/protractor.conf.js --specsDir ./path/to/specDir --debug
-```
-Usage from package.json
-
-```json
-  "test:rerun": "protractor-rerun --sessionsCount 8 --count 3 --configPath ./path/to/your/protractor.conf.js --specsDir ./path/to/specDir --debug",
-```
-
-Usage from code
 ```js
-const protractorRerun = require('protractor-rerun')
+const { getReruner, getSpecFilesArr } = require('process-rerun')
 
-const formCommand = (browser, filePath) => {
-  return `BROWSER=${browser} ./node_modules/.bin/protractor  ./protractor.conf.js  --specs ${filePath}`
-}
+/*
+  @{pathToSpecDirectory} string // './specs'
+  @{emptyArr} epmty arr // []
+  @{skipFolders} if some folders should be excluded ['folderB','folderB']
+  getSpecFilesArr(pathToSpecDirectory, emptyArr, skipFolders) params
+*/
+const specsArr = getSpecFilesArr('./specs') 
+// return all files in folder and subFolders
+/*
+[
+  'specs/1.spec.ts',
+  'specs/2.spec.ts',
+  'specs/3.spec.ts',
+  'specs/4.spec.ts',
+  'specs/5.spec.ts',
+  'specs/6.spec.ts',
+  'specs/7.spec.ts',
+  'specs/8.spec.ts',
+  'specs/9.spec.ts'
+]
+*/
+// now we need commands array 
+const formCommand = (filePath) => `./node_modules/.bin/protractor  ./protractor.conf.js  --specs ${filePath}`
+const commandsArray = specsArr.map(filePath)
+/*
+[ './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/1.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/2.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/3.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/4.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/5.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/6.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/7.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/8.spec.ts',
+  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/9.spec.ts' ]
+*/
 
-protractorRerun.getSpecCommands(specsDirBaseDocuments, (file) => formCommand('chrome', file)),
+// now we need runner 
+/*
+  getReruner(obj) params
+  @{everyCycleCallback} function, will execute after full cycle done, before next cycle
+  @{maxSessionCount} number, for example we have hub for 10 browsers, so maxSessionCount equal 10
+  @{specRerunCount} number, hom many times will reruned failed processes
+  @{stackAnalize} function, if stack trace includes some math this process will not go to rerun scope
+*/
+const cycleCB = () => console.log('Cycle done')
+const stackAnalize = (stack) => !stack.includes('ASSERTION ERROR'),
 
-const rerunner = protractorRerun.getReruner({
-  everyCycleCallback: async () => true,
-  stackAnalize: (stack) => !stack.includes('ASSERTION ERROR'),
-  pollTime:1000,
-  maxSessionCount: 12,
-  specRerunCount: 3,
-  grepWord: 'somegrep'
-})
+const runner = getReruner({
+   everyCycleCallback: cycleCB,
+   maxSessionCount: 1, 
+   specRerunCount: 3,
+   stackAnalize: stackAnalize,
+   debugProcess: processEnv.DEBUG_PROCESS
+ })
 
-rerunner(protractorRerun.getSpecCommands('./specs', (file) => formCommand('chrome', file)))
+getReruner().then((results) => console.log(results))
+// return array with failed processes
+
 ```
