@@ -2,6 +2,12 @@ What is the problem ?
 When some process failed we need tool for rerun that process controled times with some params.
 In common cases we use protractor so next example for protractor
 
+# From command line
+```sh
+./node_modules/.bin/process-rerun --protractor --configPath=./protractor.conf.js --specDir=./specs
+```
+
+# From js
 ```js
 const { getReruner, getSpecFilesArr } = require('process-rerun')
 
@@ -11,7 +17,7 @@ const { getReruner, getSpecFilesArr } = require('process-rerun')
   @{skipFolders} if some folders should be excluded ['folderB','folderB']
   getSpecFilesArr(pathToSpecDirectory, emptyArr, skipFolders) params
 */
-const specsArr = getSpecFilesArr('./specs') 
+const specsArr = getSpecFilesArr('./specs')
 // return all files in folder and subFolders
 /*
 [
@@ -26,7 +32,7 @@ const specsArr = getSpecFilesArr('./specs')
   'specs/9.spec.ts'
 ]
 */
-// now we need commands array 
+// now we need commands array
 const formCommand = (filePath) => `./node_modules/.bin/protractor  ./protractor.conf.js  --specs ${filePath}`
 const commandsArray = specsArr.map(filePath)
 /*
@@ -41,7 +47,7 @@ const commandsArray = specsArr.map(filePath)
   './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/9.spec.ts' ]
 */
 
-// now we need runner 
+// now we need runner
 /*
   getReruner(obj) params
   @{everyCycleCallback} function, will execute after full cycle done, before next cycle
@@ -54,7 +60,7 @@ const stackAnalize = (stack) => !stack.includes('ASSERTION ERROR'),
 
 const runner = getReruner({
    everyCycleCallback: cycleCB,
-   maxSessionCount: 1, 
+   maxSessionCount: 1,
    specRerunCount: 3,
    stackAnalize: stackAnalize,
    debugProcess: processEnv.DEBUG_PROCESS

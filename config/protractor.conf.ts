@@ -10,7 +10,7 @@ const conf: Config = {
 
   mochaOpts: {
     timeout: 25000,
-    reporter: 'mocha-spa-reporter'
+    reporter: 'mocha-allure-reporter'
   },
 
   // multiCapabilities: [{

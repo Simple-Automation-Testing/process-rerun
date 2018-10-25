@@ -1,4 +1,4 @@
-declare const spaReporter: any
+// declare const spaReporter: any
 
 
 function stepAllure(msg: string) {
@@ -8,9 +8,9 @@ function stepAllure(msg: string) {
 
     descriptor.value = async function(...args) {
 
-      spaReporter.createStep(msg)
-      spaReporter.attachData({ test: 'test' })
-      spaReporter.attachData('Step BBBBB')
+      // spaReporter.createStep(msg)
+      // spaReporter.attachData({ test: 'test' })
+      // spaReporter.attachData('Step BBBBB')
       try {
         const result = await method.apply(this, args)
         /* tslint:disable:no-unused-expression */

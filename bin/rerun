@@ -6,7 +6,7 @@ const path = require('path')
 const fs = require('fs')
 const {walkSync, buildExeRun, getRunCommand} = require('../lib')
 
-const argv = require('minimist')(process.argv.slice(2));
+const argv = require('minimist')(process.argv.slice(2))
 
 if(argv.protractor) {
   const defaultBuilder = {
@@ -21,9 +21,11 @@ if(argv.protractor) {
     pollTime: 1000
   }
   const defaultConfigPath = path.resolve(process.cwd(), './protractor.conf.js')
+  const defaultSpecDir = path.resolve(process.cwd(), './specs')
+
   if(argv.configPath) {
     if(!fs.existsSync(argv.configPath)) {
-      process.stdout.write('Config file was not found')
+      process.stdout.write('Config file was not found :' + argv.configPath)
       process.exit(1)
     }
   }
@@ -32,10 +34,27 @@ if(argv.protractor) {
     process.stdout.write('Default config file was not found')
     process.exit(1)
   }
-  const specFiles = walkSync(specDir).filter((file) => file.includes(defaultBuilder.grepWord))
+
+  if(argv.specDir) {
+    if(!fs.existsSync(argv.specDir)) {
+      process.stdout.write('Spec dir was not found: ' + argv.specDir)
+      process.exit(1)
+    }
+  }
+
+  if(!fs.existsSync(defaultSpecDir)) {
+    process.stdout.write('Default spec dit path is : ' + defaultSpecDir)
+    process.stdout.write('Default spec dit was not found')
+    process.exit(1)
+  }
+
+  const specFiles = walkSync(argv.specDir ? argv.specDir : defaultSpecDir)
+    .filter((file) => file.includes(defaultBuilder.grepWord))
+
   if(!specFiles.length) {
     process.stdout.write('Spec files was not fould')
   }
+
   buildExeRun(defaultBuilder)(specFiles.map((file) => getRunCommand(file,
     argv.configPath ? argv.configPath : defaultConfigPath
   )))
