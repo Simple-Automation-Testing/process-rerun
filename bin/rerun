@@ -3,14 +3,40 @@
 process.title = 'protractor-rerun'
 
 const path = require('path')
+const fs = require('fs')
 const {walkSync, buildExeRun, getRunCommand} = require('../lib')
 
 const argv = require('minimist')(process.argv.slice(2));
 
-const maxSessionCount = argv.maxSessionCount || 5
-const specRerunCount = argv.specRerunCount || 2
-const configFilePath = argv.configPath || path.resolve(process.cwd(), './protractor.conf.js')
-const specDir = argv.specsDir || path.resolve(process.cwd(), './specs')
-
-
-buildExeRun({maxSessionCount, specRerunCount})(walkSync(specDir).map((file) => getRunCommand(file, configFilePath)))
+if(argv.protractor) {
+  const defaultBuilder = {
+    maxSessionCount: argv.maxSessionCount || 5,
+    specRerunCount: argv.specRerunCount || 2,
+    stackAnalize: () => true,
+    everyCycleCallback: async () => true,
+    grepWord: argv.grepWord || '',
+    longestTestTime: 450000,
+    debugProcess: false,
+    formCommanWithOption: undefined,
+    pollTime: 1000
+  }
+  const defaultConfigPath = path.resolve(process.cwd(), './protractor.conf.js')
+  if(argv.configPath) {
+    if(!fs.existsSync(argv.configPath)) {
+      process.stdout.write('Config file was not found')
+      process.exit(1)
+    }
+  }
+  if(!fs.existsSync(defaultConfigPath)) {
+    process.stdout.write('Default config file path is : ' + defaultConfigPath)
+    process.stdout.write('Default config file was not found')
+    process.exit(1)
+  }
+  const specFiles = walkSync(specDir).filter((file) => file.includes(defaultBuilder.grepWord))
+  if(!specFiles.length) {
+    process.stdout.write('Spec files was not fould')
+  }
+  buildExeRun(defaultBuilder)(specFiles.map((file) => getRunCommand(file,
+    argv.configPath ? argv.configPath : defaultConfigPath
+  )))
+}
