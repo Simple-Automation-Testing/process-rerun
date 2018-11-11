@@ -29,7 +29,6 @@
     "protractor-rerun"
   ],
   "devDependencies": {
-    "mocha-spa-reporter": "git+https://github.com/potapovDim/mocha-spa-reporter.git",
     "@types/chai": "^4.1.2",
     "@types/mocha": "2.2.41",
     "@types/node": "8.0.24",
