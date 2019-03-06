@@ -56,7 +56,7 @@ const commandsArray = specsArr.map(filePath)
   @{stackAnalize} function, if stack trace includes some math this process will not go to rerun scope
 */
 const cycleCB = () => console.log('Cycle done')
-const stackAnalize = (stack) => !stack.includes('ASSERTION ERROR'),
+const stackAnalize = (stack) => !stack.includes('ASSERTION ERROR')
 
 const runner = getReruner({
    everyCycleCallback: cycleCB,
@@ -70,3 +70,28 @@ getReruner().then((results) => console.log(results))
 // return array with failed processes
 
 ```
+
+Note about command re-format functions.
+
+There are two command re-format functions, that you can pass to __getReruner__.
+```js
+const formCommanWithOption = (cmd) => {
+  return {
+    cmd: `${cmd} --someArgument=value --beforeRunFlag`,
+    cmdExecutableCB: () => { /* make something specific after command has run */ }
+  }
+}
+
+const reformatCommand = (cmd) => `${cmd} --someArgument=value --afterFirstRunFlag`
+
+const runner = getReruner({
+    formCommanWithOption,
+    reformatCommand,
+    /* other arguments */
+ })
+```
+__formCommanWithOption__ - will help you to run your commands on some specific environment,
+with some specific flags, etc. Also it allows you to execute some callback, after your command has run.
+
+__reformatCommand__ - in another hand, allows you to add some specific options to command
+after it failed during first execution
