@@ -12,7 +12,8 @@
   "scripts": {
     "test:local": "protractor ./protractor.conf.js",
     "tscw": "tsc -w",
-    "validate": "npm ls"
+    "validate": "npm ls",
+    "unit": "mocha --timeout 60000 $(find ./unit_specs/ -path '*.spec.js')"
   },
   "author": {
     "name": "Dmytro Potapov",
@@ -33,7 +34,7 @@
     "@types/mocha": "2.2.41",
     "@types/node": "8.0.24",
     "awb": "^0.4.84",
-    "chai": "4.1.1",
+    "chai": "^4.1.1",
     "mocha": "^5.2.0",
     "mocha-allure-reporter": "^1.4.0",
     "protractor": "^5.3.0",
