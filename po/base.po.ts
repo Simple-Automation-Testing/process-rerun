@@ -1,4 +1,4 @@
-import { $, browser, ExpectedConditions as EC } from 'protractor'
+import {$, browser, ExpectedConditions as EC} from 'protractor'
 // import { stepAllure } from '../util/decorator'
 
 
@@ -14,4 +14,4 @@ class BasePo {
   }
 }
 
-export { BasePo }
+export {BasePo}
