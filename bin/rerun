@@ -15,7 +15,7 @@ if(argv.protractor) {
     stackAnalize: () => true,
     everyCycleCallback: async () => true,
     grepWord: argv.grepWord || '',
-    longestTestTime: 450000,
+    longestProcessTime: 450000,
     debugProcess: false,
     formCommanWithOption: undefined,
     pollTime: 1000
