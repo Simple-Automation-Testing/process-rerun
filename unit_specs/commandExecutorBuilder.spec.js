@@ -4,7 +4,7 @@ const {buildCommandExecutor} = require('../lib/commandExecutorBuilder')
 
 describe('buildCommandExecutor', () => {
 
-  it.only('addSpecificOptionsBeforeRun', async () => {
+  it('addSpecificOptionsBeforeRun', async () => {
     {
       const cmd = 'node -e "console.log(\'test\')"'
       const failedByAssert = []
