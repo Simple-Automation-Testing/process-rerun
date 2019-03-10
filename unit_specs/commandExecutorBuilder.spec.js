@@ -4,22 +4,41 @@ const {buildCommandExecutor} = require('../lib/commandExecutorBuilder')
 
 describe('buildCommandExecutor', () => {
 
-  it('addSpecificOptionsBeforeRun', async () => {
-    const failedByAssert = []
-    let holder = null
+  it.only('addSpecificOptionsBeforeRun', async () => {
+    {
+      const cmd = 'node -e "console.log(\'test\')"'
+      const failedByAssert = []
+      let holder = null
 
-    const addSpecificOptionsBeforeRun = (cmd) => {
-      const reformatedCmd = `${cmd} && echo "FOO"`
-      holder = {cmd: reformatedCmd}
-      const cmdExecutableCB = () => {holder.exec = true}
+      const addSpecificOptionsBeforeRun = (cmd) => {
+        const reformatedCmd = `${cmd} && echo "FOO"`
+        holder = {cmd: reformatedCmd}
+        const cmdExecutableCB = () => {holder.exec = true}
+        return {cmd, cmdExecutableCB}
+      }
 
-      return {cmd, cmdExecutableCB}
+      const executeCommandAsync = buildCommandExecutor(failedByAssert, {addSpecificOptionsBeforeRun})
+      await executeCommandAsync(cmd)
+      expect(holder.cmd).to.eq(`${cmd} && echo "FOO"`)
+      expect(holder.exec).to.eq(undefined)
     }
+    {
+      const cmd = 'node -e "console.log(\'test\'); process.exit(100)"'
+      const failedByAssert = []
+      let holder = null
 
-    const executeCommandAsync = buildCommandExecutor(failedByAssert, {addSpecificOptionsBeforeRun})
-    await executeCommandAsync('node -e "console.log(\'test\')"')
-    expect(holder.cmd).to.eq('node -e "console.log(\'test\')" && echo "FOO"')
-    expect(holder.exec).to.eq(true)
+      const addSpecificOptionsBeforeRun = (cmd) => {
+        const reformatedCmd = `${cmd} && echo "FOO"`
+        holder = {cmd: reformatedCmd}
+        const cmdExecutableCB = () => {holder.exec = true}
+        return {cmd, cmdExecutableCB}
+      }
+
+      const executeCommandAsync = buildCommandExecutor(failedByAssert, {addSpecificOptionsBeforeRun})
+      await executeCommandAsync(cmd)
+      expect(holder.cmd).to.eq(`${cmd} && echo "FOO"`)
+      expect(holder.exec).to.eq(true)
+    }
   })
 
   it('addCommandOptionsAfterRun', async () => {
