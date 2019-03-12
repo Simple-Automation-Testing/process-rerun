@@ -46,7 +46,7 @@ describe('kernel', () => {
       expect(failedCmds.every((failedCmd) => failedCmd.includes(`CURRENT_EXECUTION_COUNT=${specRerunCount - 1}`))).to.eq(true)
     }
   })
-  it.only('formCommanWithOption', async () => {
+  it('formCommanWithOption', async () => {
     let holder = null
     const cmd = `node -e "console.log('test'); process.exit(1)"`
     const stackAnalize = () => true
@@ -65,5 +65,6 @@ describe('kernel', () => {
     })
     const failedCmds = await reRunner(cmds)
     expect(failedCmds).to.eql([`${cmd}`])
+    expect(holder).to.eq(true)
   })
 })
