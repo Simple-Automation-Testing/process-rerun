@@ -46,4 +46,24 @@ describe('kernel', () => {
       expect(failedCmds.every((failedCmd) => failedCmd.includes(`CURRENT_EXECUTION_COUNT=${specRerunCount - 1}`))).to.eq(true)
     }
   })
+  it.only('formCommanWithOption', async () => {
+    let holder = null
+    const cmd = `node -e "console.log('test'); process.exit(1)"`
+    const stackAnalize = () => true
+    const specRerunCount = 2
+    const formCommanWithOption = (cmd) => {
+      return {
+        cmd: `TEST_ENV=test ${cmd}`,
+        cmdExecutableCB: () => holder = true
+      }
+    }
+    const cmds = [cmd]
+    const reRunner = buildExeRun({
+      stackAnalize,
+      formCommanWithOption,
+      specRerunCount
+    })
+    const failedCmds = await reRunner(cmds)
+    expect(failedCmds).to.eql([`${cmd}`])
+  })
 })
