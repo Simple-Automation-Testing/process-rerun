@@ -9,7 +9,7 @@ describe('kernel', () => {
       const cmds = [cmd, cmd, cmd]
       const reRunner = buildExeRun()
       const failedCmds = await reRunner(cmds)
-      expect(failedCmds.length).to.eq(3)
+      expect(failedCmds.failedByAssert.length).to.eq(3)
     }
     // all positive
     {
@@ -17,7 +17,8 @@ describe('kernel', () => {
       const cmds = [cmd, cmd, cmd]
       const reRunner = buildExeRun()
       const failedCmds = await reRunner(cmds)
-      expect(failedCmds.length).to.eq(0)
+      expect(failedCmds.failedByAssert.length).to.eq(0)
+      expect(failedCmds.failedCommands.length).to.eq(0)
     }
   })
   it('buildExeRun currentExecutionVariable', async () => {
@@ -27,8 +28,8 @@ describe('kernel', () => {
       const cmds = [cmd]
       const reRunner = buildExeRun({currentExecutionVariable: 'CURRENT_EXECUTION_COUNT'})
       const failedCmds = await reRunner(cmds)
-      expect(failedCmds.length).to.eq(1)
-      expect(failedCmds.every((failedCmd) => failedCmd.includes('CURRENT_EXECUTION_COUNT=0'))).to.eq(true)
+      expect(failedCmds.failedByAssert.length).to.eq(1)
+      expect(failedCmds.failedCommands.every((failedCmd) => failedCmd.includes('CURRENT_EXECUTION_COUNT=0'))).to.eq(true)
     }
     // + stackAnalize
     {
@@ -42,8 +43,8 @@ describe('kernel', () => {
         currentExecutionVariable: 'CURRENT_EXECUTION_COUNT'
       })
       const failedCmds = await reRunner(cmds)
-      expect(failedCmds.length).to.eq(1)
-      expect(failedCmds.every((failedCmd) => failedCmd.includes(`CURRENT_EXECUTION_COUNT=${specRerunCount - 1}`))).to.eq(true)
+      expect(failedCmds.failedCommands.length).to.eq(1)
+      expect(failedCmds.failedCommands.every((failedCmd) => failedCmd.includes(`CURRENT_EXECUTION_COUNT=${specRerunCount - 1}`))).to.eq(true)
     }
   })
   it('formCommanWithOption', async () => {
@@ -64,7 +65,37 @@ describe('kernel', () => {
       specRerunCount
     })
     const failedCmds = await reRunner(cmds)
-    expect(failedCmds).to.eql([`${cmd}`])
+    expect(failedCmds.failedByAssert).to.eql([])
+    expect(failedCmds.failedCommands).to.eql([`${cmd}`])
     expect(holder).to.eq(true)
+  })
+
+  it('failedByAssert', async () => {
+    {
+      const cmd = `node -e "console.log('test'); process.exit(1)"`
+      const cmds = [cmd, cmd, cmd]
+      const reRunner = buildExeRun()
+      const result = await reRunner(cmds)
+      expect(result.failedByAssert.length).to.eq(3)
+      expect(result.failedCommands.length).to.eq(0)
+    }
+    {
+      const cmd = `node -e "console.log('test'); process.exit(0)"`
+      const cmds = [cmd, cmd, cmd]
+      const reRunner = buildExeRun()
+      const result = await reRunner(cmds)
+      expect(result.failedByAssert.length).to.eq(0)
+      expect(result.failedCommands.length).to.eq(0)
+    }
+    {
+      const cmd = `node -e "console.log('test'); process.exit(1)"`
+      const cmdToRerrun = `node -e "console.log('should be rerruned'); process.exit(1)"`
+      const cmds = [cmd, cmd, cmdToRerrun]
+      const stackAnalize = (stack) => stack.includes('should be rerruned')
+      const reRunner = buildExeRun({stackAnalize})
+      const result = await reRunner(cmds)
+      expect(result.failedByAssert.length).to.eq(2)
+      expect(result.failedCommands.length).to.eq(1)
+    }
   })
 })
