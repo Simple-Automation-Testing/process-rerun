@@ -52,7 +52,7 @@ const commandsArray = specsArr.map(filePath)
   getReruner(obj) params
   @{everyCycleCallback} function, will execute after full cycle done, before next cycle
   @{maxSessionCount} number, for example we have hub for 10 browsers, so maxSessionCount equal 10
-  @{specRerunCount} number, hom many times will reruned failed processes
+  @{attemptsCount} number, hom many times will reruned failed processes
   @{stackAnalize} function, if stack trace includes some math this process will not go to rerun scope
 */
 const cycleCB = () => console.log('Cycle done')
@@ -61,7 +61,7 @@ const stackAnalize = (stack) => !stack.includes('ASSERTION ERROR')
 const runner = getReruner({
    everyCycleCallback: cycleCB,
    maxSessionCount: 1,
-   specRerunCount: 3,
+   attemptsCount: 3,
    stackAnalize: stackAnalize,
    debugProcess: processEnv.DEBUG_PROCESS
  })

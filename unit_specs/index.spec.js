@@ -35,23 +35,23 @@ describe('kernel', () => {
     {
       const cmd = `node -e "console.log('test'); process.exit(1)"`
       const stackAnalize = () => true
-      const specRerunCount = 15
+      const attemptsCount = 15
       const cmds = [cmd]
       const reRunner = buildExeRun({
         stackAnalize,
-        specRerunCount,
+        attemptsCount,
         currentExecutionVariable: 'CURRENT_EXECUTION_COUNT'
       })
       const failedCmds = await reRunner(cmds)
       expect(failedCmds.failedCommands.length).to.eq(1)
-      expect(failedCmds.failedCommands.every((failedCmd) => failedCmd.includes(`CURRENT_EXECUTION_COUNT=${specRerunCount - 1}`))).to.eq(true)
+      expect(failedCmds.failedCommands.every((failedCmd) => failedCmd.includes(`CURRENT_EXECUTION_COUNT=${attemptsCount - 1}`))).to.eq(true)
     }
   })
   it('formCommanWithOption', async () => {
     let holder = null
     const cmd = `node -e "console.log('test'); process.exit(1)"`
     const stackAnalize = () => true
-    const specRerunCount = 2
+    const attemptsCount = 2
     const formCommanWithOption = (cmd) => {
       return {
         cmd: `TEST_ENV=test ${cmd}`,
@@ -62,7 +62,7 @@ describe('kernel', () => {
     const reRunner = buildExeRun({
       stackAnalize,
       formCommanWithOption,
-      specRerunCount
+      attemptsCount
     })
     const failedCmds = await reRunner(cmds)
     expect(failedCmds.failedByAssert).to.eql([])

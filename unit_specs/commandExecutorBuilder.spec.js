@@ -41,18 +41,18 @@ describe('buildCommandExecutor', () => {
     }
   })
 
-  it('addCommandOptionsAfterRun', async () => {
+  it('reformatCommand', async () => {
     const failedByAssert = []
     let holder = null
 
     const cmd = `node -e "console.log('test'); process.exit(1)"`
 
-    const addCommandOptionsAfterRun = (cmd, stack) => {
+    const reformatCommand = (cmd, stack) => {
       holder = {}
       holder.cmd = cmd
       holder.stack = stack
     }
-    const executeCommandAsync = buildCommandExecutor(failedByAssert, {addCommandOptionsAfterRun})
+    const executeCommandAsync = buildCommandExecutor(failedByAssert, {reformatCommand})
     await executeCommandAsync(cmd)
     expect(holder.cmd).to.eq(cmd)
     expect(holder.stack).to.eql('test\n')
@@ -63,7 +63,7 @@ describe('buildCommandExecutor', () => {
     let holder = null
     const cmd = `node -e "console.log('test'); process.exit(1)"`
 
-    const addCommandOptionsAfterRun = (cmd, stack) => {
+    const reformatCommand = (cmd, stack) => {
       if(!holder) holder = {}
       holder.cmd = cmd
       holder.stack = stack
@@ -74,7 +74,7 @@ describe('buildCommandExecutor', () => {
       return false
     }
     const executeCommandAsync = buildCommandExecutor(failedByAssert, {
-      addCommandOptionsAfterRun, stackAnalize
+      reformatCommand, stackAnalize
     })
     await executeCommandAsync(cmd)
     expect(holder.fromStackAnalize).to.eq('test\n')
@@ -128,7 +128,7 @@ describe('buildCommandExecutor', () => {
       return false
     }
 
-    const addCommandOptionsAfterRun = (cmd, stack) => {
+    const reformatCommand = (cmd, stack) => {
       if(!holder) holder = {}
       holder.cmd = cmd
       holder.stack = stack
@@ -137,7 +137,7 @@ describe('buildCommandExecutor', () => {
 
     const executeCommandAsync = buildCommandExecutor(failedByAssert, {
       stackAnalize,
-      addCommandOptionsAfterRun,
+      reformatCommand,
       currentExecutionVariable
     })
 

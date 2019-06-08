@@ -11,7 +11,7 @@ const argv = require('minimist')(process.argv.slice(2))
 if(argv.protractor) {
   const defaultBuilder = {
     maxSessionCount: argv.maxSessionCount || 5,
-    specRerunCount: argv.specRerunCount || 2,
+    attemptsCount: argv.attemptsCount || 2,
     stackAnalize: () => true,
     everyCycleCallback: async () => true,
     grepWord: argv.grepWord || '',
