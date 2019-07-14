@@ -97,7 +97,7 @@ describe('buildCommandExecutor', () => {
 
       const executeCommandAsync = buildCommandExecutor(failedByAssert, {stackAnalize, longestProcessTime: 1})
       await executeCommandAsync(cmd)
-      expect(holder).to.eq(null)
+      expect(holder).not.to.eq(null)
     }
     {
       const failedByAssert = []
