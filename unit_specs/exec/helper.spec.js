@@ -1,4 +1,4 @@
-const {getPollTime, getFormedRunCommand} = require('../lib/helpers')
+const {getPollTime, getFormedRunCommand} = require('../../lib/helpers')
 const {expect} = require('chai')
 const path = require('path')
 

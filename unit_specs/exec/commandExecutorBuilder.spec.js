@@ -1,6 +1,6 @@
 const {expect} = require('chai')
 
-const {buildCommandExecutor} = require('../lib/commandExecutorBuilder')
+const {buildCommandExecutor} = require('../../lib/commandExecutorBuilder')
 
 describe('buildCommandExecutor', () => {
 

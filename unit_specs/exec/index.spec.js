@@ -1,5 +1,5 @@
 const {expect} = require('chai')
-const {buildExeRun} = require('../lib')
+const {buildExeRun} = require('../../lib')
 
 describe('kernel', () => {
   it('buildExeRun basic execution', async () => {
