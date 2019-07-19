@@ -2,6 +2,8 @@ What is the problem ?
 When some process failed we need tool for rerun that process controled times with some params.
 In common cases we use protractor so next example for protractor
 
+![npm downloads](https://img.shields.io/npm/dm/process-rerun.svg?style=flat-square)
+
 # From command line
 ```sh
 ./node_modules/.bin/process-rerun --protractor --configPath=./protractor.conf.js --specDir=./specs
