@@ -1,6 +1,6 @@
 {
   "name": "process-rerun",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "bin": {
     "protractor-rerun": "./bin/rerun"
   },
