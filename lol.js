@@ -10,24 +10,31 @@ var mocha = new Mocha();
 const itSpecNameRegex = /(?<=it\(')(\d|\w|\s)+/ig
 
 
+const filesWithGrepOpts = []
+
+
 
 var testDir = path.relative(__dirname, './mocha_specs')
 
 // Add each .js file to the mocha instance
-getSpecFilesArr(testDir)
+getSpecFilesArr(testDir).forEach(function(file) {
+
+  const fileContent = fs.readFileSync(file, {encoding: 'utf8'})
+
+  const stepGreps = fileContent.match(itSpecNameRegex)
 
 
-  .forEach(function(file) {
+  stepGreps.forEach(function(grepItem) {
+    filesWithGrepOpts.push({file, grepItem})
+  })
 
-    const fileContent = fs.readFileSync(file, {encoding: 'utf8'})
+  // mocha.addFile(
+  //   path.join(testDir, file)
+  // );
+});
 
-    console.log(fileContent.match(itSpecNameRegex))
 
-    // mocha.addFile(
-    //   path.join(testDir, file)
-    // );
-  });
-
+console.log(filesWithGrepOpts)
 
 
 
