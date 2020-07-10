@@ -4,7 +4,7 @@ process.title = 'protractor-rerun'
 
 const path = require('path')
 const fs = require('fs')
-const {walkSync, buildExeRun, getRunCommand} = require('../lib')
+const {getFilesList, buildExeRun, getRunCommand} = require('../lib')
 
 const argv = require('minimist')(process.argv.slice(2))
 
@@ -48,7 +48,7 @@ if(argv.protractor) {
     process.exit(1)
   }
 
-  const specFiles = walkSync(argv.specDir ? argv.specDir : defaultSpecDir)
+  const specFiles = getFilesList(argv.specDir ? argv.specDir : defaultSpecDir)
     .filter((file) => file.includes(defaultBuilder.grepWord))
 
   if(!specFiles.length) {

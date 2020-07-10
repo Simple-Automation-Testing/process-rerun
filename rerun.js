@@ -1,11 +1,12 @@
 
-const {walkSync, buildExeRun} = require('./lib')
+const {getFilesList, buildExeRun} = require('./lib')
 
 module.exports = {
   getReruner: function(optsObj) {
     return buildExeRun(optsObj)
   },
-  getSpecFilesArr: walkSync,
+  getFilesList,
+  getSpecFilesArr: getFilesList,
   getSpecCommands: function(pathToSpecDir, getRunCommandPattern) {
     return walkSync(pathToSpecDir).map(getRunCommandPattern)
   }
