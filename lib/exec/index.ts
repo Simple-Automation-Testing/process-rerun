@@ -16,15 +16,16 @@ function execute(cmd: string, executionHolder: {stackTrace: string}, execOpts = 
   }
 
   const execProc = exec(cmd, execOpts, (error, stdout, stderr) => {
-
-    logger.info('___________________________________________________________________________');
-    logger.info(`command for process:  ${cmd}`);
-    logger.info(`process duration: ${millisecondsToMinutes(+Date.now() - startTime)}`);
-    logger.info(`PID: ${execProc.pid}`);
-    logger.info(`stdout: ${stdout}`);
-    if (stderr) logger.error(`stderr: ${stderr}`);
-    if (error) logger.error(`error: ${error}`);
-    logger.info('___________________________________________________________________________');
+    if (debugProcess) {
+      logger.info('___________________________________________________________________________');
+      logger.info(`command for process:  ${cmd}`);
+      logger.info(`process duration: ${millisecondsToMinutes(+Date.now() - startTime)}`);
+      logger.info(`PID: ${execProc.pid}`);
+      logger.info(`stdout: ${stdout}`);
+      if (stderr) logger.error(`stderr: ${stderr}`);
+      if (error) logger.error(`error: ${error}`);
+      logger.info('___________________________________________________________________________');
+    }
 
     executionHolder.stackTrace += `${stdout}${stderr}`;
   });

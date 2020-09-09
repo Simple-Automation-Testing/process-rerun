@@ -98,7 +98,7 @@ test('[P] VERBOSE', function() {
   mocked.restore();
 });
 
-test.only('[P] SWHITCH LOG LEVELS', function() {
+test('[P] SWHITCH LOG LEVELS', function() {
   const mocked = mockConsoleApi();
   setLogLevel('ERROR');
   logger.log(1);

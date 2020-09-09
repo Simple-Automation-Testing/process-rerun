@@ -1,20 +1,20 @@
-function wrapInGreen(txt: string) {
+function wrapInGreen(txt: string): string {
   return `\u001b[34m${txt}\u001b[0m`;
 }
 
-function wrapInRed(txt: string) {
+function wrapInRed(txt: string): string {
   return `\u001b[31m${txt}\u001b[0m`;
 }
 
-function wrapInBlue(txt: string) {
+function wrapInBlue(txt: string): string {
   return `\u001b[34m${txt}\u001b[0m`;
 }
 
-function wrapInYellow(txt: string) {
+function wrapInYellow(txt: string): string {
   return `\u001b[33m${txt}\u001b[0m`;
 }
 
-function wrapInMagenta(txt: string) {
+function wrapInMagenta(txt: string): string {
   return `\x1b[35m${txt}\u001b[0m`;
 }
 

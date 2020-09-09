@@ -1,13 +1,7 @@
-import {buildExecRunner} from './execProc'
-// import {buildSpawnRunner} from './spawnProc';
+import {buildExecRunner} from './execProc';
 
 function buildCommandExecutor(notRetriable, {spawn = false, ...runOpts}) {
-  return buildExecRunner(notRetriable, runOpts)
-  // TODO will be implemented
-  // if (spawn) {
-  //   return buildSpawnRunner(notRetriable, runOpts)
-  // } else {
-  // }
+  return buildExecRunner(notRetriable, runOpts);
 }
 
 export {

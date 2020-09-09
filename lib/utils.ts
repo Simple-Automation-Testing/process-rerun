@@ -20,7 +20,7 @@ function executionWatcher(debugProcess, currentTime, limitTime, intervalWatcher,
   }
 };
 
-function millisecondsToMinutes(milliseconds) {
+function millisecondsToMinutes(milliseconds): string {
   const minutes = Math.floor(milliseconds / 60000) as number;
   const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
   return (seconds === '60' ? (minutes + 1) + ":00" : minutes + ":" + (+seconds < 10 ? "0" : "") + seconds);

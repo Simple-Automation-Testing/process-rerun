@@ -14,7 +14,7 @@ function reRunnerBuilder(runOptions) {
     pollTime,
     everyCycleCallback,
     longestProcessTime,
-    spawn,
+    successExitCode,
     formCommanWithOption,
     currentExecutionVariable,
     maxThreads,
@@ -30,7 +30,8 @@ function reRunnerBuilder(runOptions) {
     longestProcessTime,
     debugProcess,
     processResultAnalyzer,
-    pollTime
+    pollTime,
+    successExitCode
   });
 
   async function reRunner(commandsArray) {
@@ -118,9 +119,10 @@ interface IBuildOpts {
   maxThreads?: number,
   attemptsCount?: number,
   longestProcessTime?: number;
+  successExitCode?: number;
   pollTime?: number;
   debugProcess?: boolean;
-  processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | null;
+  processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | null | void;
   everyCycleCallback?: () => void;
   formCommanWithOption?: (cmd: string) => {cmd: string; onErrorCloseHandler: () => void};
   currentExecutionVariable?: string;
@@ -137,6 +139,7 @@ const buildRunner = ({
   longestProcessTime = 450000,
   pollTime = 1000,
   debugProcess = false,
+  successExitCode = 0,
   ...rest
 }: IBuildOpts = {}): IRunner => {
 
@@ -145,6 +148,7 @@ const buildRunner = ({
     longestProcessTime,
     maxThreads,
     attemptsCount,
+    successExitCode,
     pollTime: getPollTime(pollTime),
     ...rest
   };
