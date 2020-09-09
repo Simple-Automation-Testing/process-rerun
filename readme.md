@@ -1,99 +1,80 @@
-What is the problem ?
-When some process failed we need tool for rerun that process controled times with some params.
-In common cases we use protractor so next example for protractor
+# process-rerun
+
+The purpose of this library is - build simple and flexible interface for parallel command execution with rerun (on fail) possibility
 
 ![npm downloads](https://img.shields.io/npm/dm/process-rerun.svg?style=flat-square)
 
-# From command line
-```sh
-./node_modules/.bin/process-rerun --protractor --configPath=./protractor.conf.js --specDir=./specs
-```
+## API
 
-# From js
+### buildRunner(buildOpts): returns rerunner: function(string[]): {retriable: string[]; notRetriable: string[]}
+
+arguments | description
+--- | ---
+**`buildOpts`** | Type: `object` <br> Options for executor
+**`buildOpts.maxThreads`** | Type: `number`,  <br> How many threads can be executed in same time <br> **Default threads count is 5**
+**`buildOpts.attemptsCount`** | Type: `number`,  <br> How many times can we try to execute command for success result **in next cycle will be executed only faild command, success commands will not be reexecuted** <br> **Default attempts count is 2**
+**`buildOpts.pollTime`** | Type: `number` ,  <br> Period for recheck about free thread <br> **Default is 1 second**
+**`buildOpts.logLevel`** | Type: `string`, one of 'ERROR', 'WARN', 'INFO', 'VERBOSE', <br> ERROR - only errors, WARN -  errors and warnings, INFO - errors, warnings and information, VERBOSE - full logging <br> **Default is 'ERROR'**
+**`buildOpts.currentExecutionVariable`** | Type: `string`, will be execution variable with execution index for every cycle will be ++ <br>
+**`buildOpts.everyCycleCallback`** | Type: `function`,  <br> Optional. everyCycleCallback will be executed after cycle, before next execution cycle.<br> **Default is false**
+**`buildOpts.processResultAnalyzer`** | Type: `function`,  <br> Optional. processResultAnalyzer is a function where arguments are original command, execution stack trace and notRetriable array processResultAnalyzer should return a new command what will be executed in next cycle or **null** - if satisfactory result <br>
+**`buildOpts.longestProcessTime`** | Type: `number`,  <br> In case if command execution time is longer than longest Process Time - executor will kill it automatically and will try to execute this command again. <br> **Default time is 45 seconds**
+
+#### usage example
+
 ```js
-const { getReruner, getSpecFilesArr } = require('process-rerun')
+const {buildRunner} = require('process-rerun');
 
-/*
-  @{pathToSpecDirectory} string // './specs'
-  @{emptyArr} epmty arr // []
-  @{skipFolders} if some folders should be excluded ['folderB','folderB']
-  getSpecFilesArr(pathToSpecDirectory, emptyArr, skipFolders) params
-*/
-const specsArr = getSpecFilesArr('./specs')
-// return all files in folder and subFolders
-/*
-[
-  'specs/1.spec.ts',
-  'specs/2.spec.ts',
-  'specs/3.spec.ts',
-  'specs/4.spec.ts',
-  'specs/5.spec.ts',
-  'specs/6.spec.ts',
-  'specs/7.spec.ts',
-  'specs/8.spec.ts',
-  'specs/9.spec.ts'
-]
-*/
-// now we need commands array
-const formCommand = (filePath) => `./node_modules/.bin/protractor  ./protractor.conf.js  --specs ${filePath}`
-const commandsArray = specsArr.map(filePath)
-/*
-[ './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/1.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/2.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/3.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/4.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/5.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/6.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/7.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/8.spec.ts',
-  './node_modules/.bin/protractor  ./protractor.conf.js  --specs specs/9.spec.ts' ]
-*/
+async function execCommands() {
+  const runner = buildRunner({
+    maxThreads: 10,               // ten threads
+    attemptsCount: 2,             // will try to pass all commands two times, one main and one times rerun
+    longestProcessTime: 60 * 1000,// if command process execution time is longre than 1 minute will kill it and try to pass in next cycle
+    pollTime: 1000,               // will check free thread every second
+    // @deprecated
+    debugProcess: true,           // all information will be in console output
+    everyCycleCallback: () => console.log('Cycle done'),
+    processResultAnalyzer: (cmd, stackTrace, notRetriableArr) => {
+      if (stackTrace.includes('Should be re executed')) {
+        return cmd;
+      }
+      notRetriableArr.push(cmd)
+    }, //true - command will be reexecuted
+  });
+  const result = await runner([
+    `node -e 'console.log("Success first")'`,
+    `node -e 'console.log("Success second")'`,
+    `node -e 'console.log("Failed first"); process.exit(1)'`,
+    `node -e 'console.log("Success third")'`,
+    `node -e 'console.log("Failed second"); process.exit(1)'`,
+  ])
 
-// now we need runner
-/*
-  getReruner(obj) params
-  @{everyCycleCallback} function, will execute after full cycle done, before next cycle
-  @{maxSessionCount} number, for example we have hub for 10 browsers, so maxSessionCount equal 10
-  @{attemptsCount} number, hom many times will reruned failed processes
-  @{stackAnalize} function, if stack trace includes some math this process will not go to rerun scope
-*/
-const cycleCB = () => console.log('Cycle done')
-const stackAnalize = (stack) => !stack.includes('ASSERTION ERROR')
-
-const runner = getReruner({
-   everyCycleCallback: cycleCB,
-   maxSessionCount: 1,
-   attemptsCount: 3,
-   stackAnalize: stackAnalize,
-   debugProcess: processEnv.DEBUG_PROCESS
- })
-
-getReruner().then((results) => console.log(results))
-// return array with failed processes
-
-```
-
-Note about command re-format functions.
-
-There are two command re-format functions, that you can pass to __getReruner__.
-```js
-const formCommanWithOption = (cmd) => {
-  return {
-    cmd: `${cmd} --someArgument=value --beforeRunFlag`,
-    cmdExecutableCB: () => { /* make something specific after command has run */ }
+  console.log(result);
+  /*
+  {
+    retriable: [
+      `node -e 'console.log("Failed first"); process.exit(1)' --opt1=opt1value --opt1=opt1value`,
+      `node -e 'console.log("Failed second"); process.exit(1)' --opt1=opt1value --opt1=opt1value`
+    ],
+    notRetriable: []
   }
+  */
 }
 
-const reformatCommand = (cmd) => `${cmd} --someArgument=value --afterFirstRunFlag`
-
-const runner = getReruner({
-    formCommanWithOption,
-    reformatCommand,
-    /* other arguments */
- })
 ```
-__formCommanWithOption__ - will help you to run your commands on some specific environment,
-with some specific flags, etc. Also it allows you to execute some callback, after your command has run.
+### getFilesList(dir: string; fileList?:array; directoryToSkip?: string[]|string|regex; ignoreSubDirs?: boolean) <br> returns array with paths to files
 
-__reformatCommand__ - in another hand, allows you to add some specific options to command
-after it failed during first execution
+arguments | description
+--- | ---
+**`dir`** | Type: `string` , *required* <br> Directory what will be used as a root
+**`fileList`** | Type: `Array<string>` ,  <br> This array will be used as a target for push new file
+**`directoryToSkip`** | Type: `Array<string>|string|regex`, <br> Exlude some directory
+**`ignoreSubDirs`** | Type: `boolean`, <br> In case of true - sub directories will be ignored
+
+#### usage exampele
+
+```js
+const {getFilesList} = require('process-rerun');
+
+const readmePath = getFilesList(__dirname).find((filePath) => filePath.include('readme.md'));
+```

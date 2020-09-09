@@ -1,19 +1,18 @@
 {
   "name": "process-rerun",
-  "version": "0.0.17",
-  "bin": {
-    "protractor-rerun": "./bin/rerun"
-  },
+  "version": "0.1.10",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/potapovDim/protractor-rerun.git"
   },
-  "main": "./rerun.js",
+  "main": "./built/index.js",
   "scripts": {
-    "test:local": "protractor ./protractor.conf.js",
     "tscw": "tsc -w",
     "validate": "npm ls",
-    "unit": "mocha --timeout 60000 $(find ./unit_specs/ -path '*.spec.js')"
+    "test": "jest",
+    "test:cover": "jest --collect-coverage",
+    "build": "tsc",
+    "postinstall": "node ./postinstall.js"
   },
   "author": {
     "name": "Dmytro Potapov",
@@ -27,20 +26,18 @@
     "selenium",
     "rerun",
     "failed-tests",
-    "protractor-rerun"
+    "protractor-rerun",
+    "parallel execution"
   ],
   "devDependencies": {
-    "@types/chai": "^4.1.2",
-    "@types/mocha": "2.2.41",
-    "@types/node": "8.0.24",
-    "awb": "^0.4.84",
-    "chai": "^4.1.1",
-    "mocha": "^5.2.0",
-    "mocha-allure-reporter": "^1.4.0",
-    "protractor": "^5.3.0",
+    "@types/jest": "^26.0.10",
+    "@types/node": "^14.6.2",
+    "assertior": "0.0.11",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.3.0",
     "ts-node": "^5.0.1",
     "tslint": "^5.9.1",
-    "typescript": "2.5.1"
+    "typescript": "^4.0.2"
   },
   "engines": {
     "node": ">=8.9.0"

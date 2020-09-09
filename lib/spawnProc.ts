@@ -1,21 +1,21 @@
-const {spawn} = require('child_process')
-const {returnStringType} = require('./helpers')
+import {spawn} from 'child_process';
+import {returnStringType} from './helpers';
 
-function buildSpawnRunner(failedByAssert, runOpts) {
+function buildSpawnRunner(notRetriable, runOpts) {
 
   const {
-    addSpecificOptionsBeforeRun,
+    formCommanWithOption,
     longestProcessTime,
     debugProcess,
-    reformatCommand,
-    stackAnalize
+    processResultAnalyzer
   } = runOpts
 
   const executeCommandAsync = (cmd) => new Promise((resolve) => {
+
     let watcher = null
     let originalComman = null
     let originalCmd = cmd
-    let specificCallBack = null
+    let onErrorCloseHandler = null
     let executionStack = ''
 
     /**
@@ -24,22 +24,22 @@ function buildSpawnRunner(failedByAssert, runOpts) {
     const now = +Date.now()
 
     const killTooLongExecution = (proc) => {
-      if(Date.now() - now >= longestProcessTime) {
+      if (Date.now() - now >= longestProcessTime) {
         proc.kill()
       }
     }
     /**
      * @param {undefined|function} addSpecificOptions if function cmd will go to this function as argument
      */
-    if(addSpecificOptionsBeforeRun) {
-      const cmdObj = addSpecificOptionsBeforeRun(cmd)
+    if (formCommanWithOption) {
+      const cmdObj = formCommanWithOption(cmd)
       originalComman = {...cmd}
       cmd = cmdObj.cmd
 
-      specificCallBack = cmdObj.cmdExecutableCB
+      onErrorCloseHandler = cmdObj.cmdExecutableCB
     }
 
-    if(debugProcess) {console.log(cmd)}
+    if (debugProcess) {console.log(cmd)}
 
     const proc = spawn(cmd.command, cmd.args, cmd.options)
 
@@ -57,34 +57,29 @@ function buildSpawnRunner(failedByAssert, runOpts) {
     proc.on('close', async (code) => {
       let commandToRerun = null
 
-      if(debugProcess) {console.log(executionStack, code)}
+      if (debugProcess) {console.log(executionStack, code)}
 
       // if process code 0 - exit as a success result
-      if(code === 0) {
+      if (code === 0) {
         resolve(commandToRerun); return
       }
-      // stackAnalize - check that stack contains or not contains some specific data
-      if(code !== 0 && stackAnalize && stackAnalize(executionStack)) {
-        commandToRerun = cmd
-      } else if(code !== 0 && reformatCommand) {
+      // processResultAnalyzer - check that stack contains or not contains some specific data
+      if (code !== 0 && processResultAnalyzer && processResultAnalyzer(executionStack)) {
         commandToRerun = cmd
       } else {
-        failedByAssert.push(cmd)
+        notRetriable.push(cmd)
       }
 
       // if code === 0 do nothing, success
-      if(specificCallBack) {
-        if(specificCallBack.then || returnStringType(specificCallBack) === '[object AsyncFunction]') {
-          await specificCallBack()
+      if (onErrorCloseHandler) {
+        if (onErrorCloseHandler.then || returnStringType(onErrorCloseHandler) === '[object AsyncFunction]') {
+          await onErrorCloseHandler()
         } else {
-          specificCallBack()
+          onErrorCloseHandler()
         }
       }
 
-      if(reformatCommand && commandToRerun) {
-        commandToRerun = reformatCommand(commandToRerun, executionStack)
-      }
-      // addSpecificOptionsBeforeRun was defined - we should remove useless opts what will be added in next iteration
+      // formCommanWithOption was defined - we should remove useless opts what will be added in next iteration
       // if(additionalOpts) {
       // commandToRerun = commandToRerun.replace(additionalOpts, '')
       // }
@@ -95,6 +90,6 @@ function buildSpawnRunner(failedByAssert, runOpts) {
   return executeCommandAsync
 }
 
-module.exports = {
+export {
   buildSpawnRunner
 }
