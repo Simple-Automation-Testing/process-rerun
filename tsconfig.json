@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2017",
+    "target": "es2018",
     "sourceMap": true,
-    "mapRoot": "built",
     "outDir": "built",
-    "experimentalDecorators": true,
-    "lib": [
-      "dom",
-      "es2017"
-    ]
+    "declaration": true,
+    "experimentalDecorators": true
   },
+  "include": [
+    "lib"
+  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "built",
+    "specs",
+    "example"
   ]
 }

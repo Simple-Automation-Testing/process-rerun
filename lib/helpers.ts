@@ -1,17 +1,6 @@
-const fs = require('fs')
-const path = require('path')
-/**
-  *  Current example for process-rerun with protractor framework
-  *
-  *
-  * getFormedRunCommand('./spec/test.file.spec.js', './protractor.conf.js')
-  * @param {string} file path to spec file
-  * @param {string} conf path to config file
-  * @returns {string}
-  */
-const getFormedRunCommand = (file, conf = path.resolve(process.cwd(), './protractor.conf.js')) => {
-  return `${path.resolve(process.cwd(), './node_modules/.bin/protractor')} ${conf} --specs ${file}`
-}
+import * as fs from 'fs';
+import * as path from 'path';
+import {ProcessRerunError} from './error';
 
 /**
   * @param {string} dir a path to the director what should be read
@@ -20,25 +9,31 @@ const getFormedRunCommand = (file, conf = path.resolve(process.cwd(), './protrac
   * @param {boolean} ignoreSubDirs option, directories what should be exclude from files list
   * @returns {array<string>}
   */
-const getFilesList = function(dir, fileList = [], directoryToSkip = [], ignoreSubDirs) {
+const getFilesList = function(dir: string, fileList: string[] = [], directoryToSkip = [], ignoreSubDirs?: boolean) {
+  if (!fs.existsSync(dir)) {
+    throw new ProcessRerunError('FileSystem', `${dir} does not exists`);
+  }
 
   const files = fs.readdirSync(dir)
+
   files.forEach(function(file) {
     const isDirr = fs.statSync(path.join(dir, file)).isDirectory()
+
     const shouldBeExcluded =
       (Array.isArray(directoryToSkip) && directoryToSkip.includes(file)) ||
       (typeof directoryToSkip === 'string' && file.includes(directoryToSkip)) ||
       (directoryToSkip instanceof RegExp && file.match(directoryToSkip))
 
-    if(shouldBeExcluded) {return }
+    if (shouldBeExcluded) {return }
 
-    if(isDirr && !ignoreSubDirs) {
+    if (isDirr && !ignoreSubDirs) {
       fileList = getFilesList(path.join(dir, file), fileList, directoryToSkip, ignoreSubDirs)
-    } else {
+    } else if (!isDirr) {
       fileList.push(path.join(dir, file))
     }
-  })
-  return fileList
+  });
+
+  return fileList;
 }
 
 /**
@@ -48,7 +43,7 @@ const getFilesList = function(dir, fileList = [], directoryToSkip = [], ignoreSu
 */
 
 const getPollTime = (timeVal) => {
-  return typeof timeVal === 'number' ? timeVal : 1000
+  return typeof timeVal === 'number' && !isNaN(timeVal) && isFinite(timeVal) ? timeVal : 1000;
 }
 /**
   * await sleep(5000)
@@ -58,8 +53,7 @@ const sleep = (time) => new Promise((res) => setTimeout(res, time))
 
 const returnStringType = (arg) => Object.prototype.toString.call(arg)
 
-module.exports = {
-  getFormedRunCommand,
+export {
   getPollTime,
   sleep,
   getFilesList,
