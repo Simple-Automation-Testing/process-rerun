@@ -6,10 +6,8 @@ import {ProcessRerunError} from './error';
 
 function buildExecRunner(notRetriable, runOpts) {
   const {
-    formCommanWithOption,
     currentExecutionVariable,
     longestProcessTime,
-    debugProcess,
     processResultAnalyzer,
     execOpts = {maxBuffer: 1000 * 1024},
     pollTime,
@@ -21,9 +19,6 @@ function buildExecRunner(notRetriable, runOpts) {
   }
 
   return (cmd, index) => new Promise((resolve) => {
-    // TODO
-    let additionalOpts = null;
-    let originalCmd = cmd;
     let onErrorCloseHandler = null;
 
     const executionHolder = {stackTrace: ''};
@@ -32,16 +27,6 @@ function buildExecRunner(notRetriable, runOpts) {
      */
     const startTime = +Date.now();
 
-    /**
-     * @param {undefined|function} addSpecificOptions if function cmd will go to this function as argument
-     */
-    if (formCommanWithOption) {
-      const cmdObj = formCommanWithOption(cmd);
-      cmd = cmdObj.cmd;
-      onErrorCloseHandler = cmdObj.onErrorCloseHandler;
-      additionalOpts = cmd.replace(originalCmd, '');
-    }
-
     if (currentExecutionVariable) {
       if (cmd.includes(currentExecutionVariable)) {
         cmd = cmd.replace(new RegExp(`${currentExecutionVariable}=\\d+`, 'ig'), `${currentExecutionVariable}=${index}`);
@@ -49,14 +34,12 @@ function buildExecRunner(notRetriable, runOpts) {
         cmd = `${currentExecutionVariable}=${index} ${cmd}`;
       }
     }
-    const execProc = execute(cmd, executionHolder, execOpts, debugProcess);
+    const execProc = execute(cmd, executionHolder, execOpts);
 
     const killTooLongExecution = (procWhatShouldBeKilled) => {
       const executionTime = +Date.now() - startTime;
       if (executionTime > longestProcessTime) {
-        if (debugProcess) {
-          logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}`);
-        }
+        logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}`);
         procWhatShouldBeKilled.kill();
       }
     };
@@ -64,22 +47,16 @@ function buildExecRunner(notRetriable, runOpts) {
     const watcher = setInterval(() => killTooLongExecution(execProc), pollTime);
 
     execProc.on('exit', (code, signal) => {
-      if (debugProcess) {
-        logger.info(`EXIT PROCESS: PID="${execProc.pid}", code="${code}" and signal="${signal}"`);
-      }
+      logger.info(`EXIT PROCESS: PID="${execProc.pid}", code="${code}" and signal="${signal}"`);
     });
 
     execProc.on('error', (e) => {
-      if (debugProcess) {
-        logger.info(`ERROR PROCESS: PID="${execProc.pid}"`);
-      }
+      logger.info(`ERROR PROCESS: PID="${execProc.pid}"`);
       logger.error(e);
     });
 
     execProc.on('close', async (code, signal) => {
-      if (debugProcess) {
-        logger.info(`CLOSE PROCESS: PID="${execProc.pid}", code="${code}" and signal="${signal}"`);
-      }
+      logger.info(`CLOSE PROCESS: PID="${execProc.pid}", code="${code}" and signal="${signal}"`);
 
       // clear watcher interval
       clearInterval(watcher);

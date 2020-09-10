@@ -1,6 +1,6 @@
 import {buildExecRunner} from './execProc';
 
-function buildCommandExecutor(notRetriable, {spawn = false, ...runOpts}) {
+function buildCommandExecutor(notRetriable, runOpts) {
   return buildExecRunner(notRetriable, runOpts);
 }
 
