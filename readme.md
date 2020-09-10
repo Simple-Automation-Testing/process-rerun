@@ -36,8 +36,6 @@ async function execCommands() {
     attemptsCount: 2,             // will try to pass all commands two times, one main and one times rerun
     longestProcessTime: 60 * 1000,// if command process execution time is longre than 1 minute will kill it and try to pass in next cycle
     pollTime: 1000,               // will check free thread every second
-    // @deprecated
-    debugProcess: true,           // all information will be in console output
     everyCycleCallback: () => console.log('Cycle done'),
     processResultAnalyzer: (cmd, stackTrace, notRetriableArr) => {
       if (stackTrace.includes('Should be re executed')) {

@@ -1,7 +1,6 @@
 import {expect} from 'assertior';
 import * as path from 'path';
 import {getPollTime, returnStringType, getFilesList} from '../lib/helpers';
-import {getSpecFilesArr} from '../lib';
 import {ProcessRerunError} from '../lib/error';
 
 test('[P] getPollTime', function() {
@@ -28,8 +27,8 @@ test('[P] getFilesList ignoreSubDirs', function() {
   )).toBeEmptyArray();
 });
 
-test('[P] getSpecFilesArr', function() {
-  expect(getSpecFilesArr(
+test('[P] getFilesList', function() {
+  expect(getFilesList(
     path.resolve(__dirname, '../node_modules'),
   )).toBeNotEmptyArray();
 });

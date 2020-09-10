@@ -56,7 +56,7 @@ const logger = {
 };
 
 
-function setLogLevel(level: 'ERROR' | 'WARN' | 'INFO' | 'VERBOSE') {
+function setLogLevel(level: 'ERROR' | 'WARN' | 'INFO' | 'VERBOSE' | 'MUTE') {
   logger.setLogLevel(level);
 }
 
