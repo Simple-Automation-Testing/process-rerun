@@ -15,15 +15,15 @@ function mockConsoleApi() {
 
   console.info = function() {
     callInfo++;
-  }
+  };
 
   console.warn = function() {
     callWarn++;
-  }
+  };
 
   console.error = function() {
     callErr++;
-  }
+  };
 
   return {
     restore() {
@@ -36,9 +36,9 @@ function mockConsoleApi() {
     getInfoCalls: () => callInfo,
     getErrCalls: () => callErr,
     getWarnCalls: () => callWarn,
-  }
+  };
 }
 
 export {
   mockConsoleApi
-}
+};

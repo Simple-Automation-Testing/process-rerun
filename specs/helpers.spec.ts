@@ -11,7 +11,7 @@ test('[P] getPollTime', function() {
 });
 
 test('[P] returnStringType', function() {
-  expect(returnStringType('')).toEqual('[object String]')
+  expect(returnStringType('')).toEqual('[object String]');
 });
 
 test('[P] getFilesList', function() {

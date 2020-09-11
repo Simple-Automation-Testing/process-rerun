@@ -64,4 +64,4 @@ export {
   logger,
   colors,
   setLogLevel
-}
+};

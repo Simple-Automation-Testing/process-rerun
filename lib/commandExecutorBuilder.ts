@@ -6,4 +6,4 @@ function buildCommandExecutor(notRetriable, runOpts) {
 
 export {
   buildCommandExecutor
-}
+};

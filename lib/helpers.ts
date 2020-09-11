@@ -17,7 +17,9 @@ const getFilesList = function(dir: string, fileList: string[] = [], directoryToS
       (typeof directoryToSkip === 'string' && file.includes(directoryToSkip)) ||
       (directoryToSkip instanceof RegExp && file.match(directoryToSkip));
 
-    if (shouldBeExcluded) {return }
+    if (shouldBeExcluded) {
+return;
+}
 
     if (isDirr && !ignoreSubDirs) {
       fileList = getFilesList(path.join(dir, file), fileList, directoryToSkip, ignoreSubDirs);
@@ -27,7 +29,7 @@ const getFilesList = function(dir: string, fileList: string[] = [], directoryToS
   });
 
   return fileList;
-}
+};
 
 function getPollTime(timeVal: any): number {
   return typeof timeVal === 'number' && !isNaN(timeVal) && isFinite(timeVal) ? timeVal : 1000;
@@ -46,4 +48,4 @@ export {
   sleep,
   getFilesList,
   returnStringType
-}
+};
