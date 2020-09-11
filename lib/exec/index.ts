@@ -1,5 +1,5 @@
 import {exec} from 'child_process';
-import {millisecondsToMinutes} from '../utils'
+import {millisecondsToMinutes} from '../utils';
 import {logger} from '../logger';
 import {ProcessRerunError} from '../error';
 
@@ -33,4 +33,4 @@ function execute(cmd: string, executionHolder: {stackTrace: string}, execOpts = 
 
 export {
   execute
-}
+};

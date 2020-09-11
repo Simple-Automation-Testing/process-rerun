@@ -1,5 +1,5 @@
 import {returnStringType} from './helpers';
-import {millisecondsToMinutes} from './utils'
+import {millisecondsToMinutes} from './utils';
 import {execute} from './exec';
 import {logger} from './logger';
 import {ProcessRerunError} from './error';
@@ -19,7 +19,7 @@ function buildExecRunner(notRetriable, runOpts) {
   }
 
   return (cmd, index) => new Promise((resolve) => {
-    let onErrorCloseHandler = null;
+    const onErrorCloseHandler = null;
 
     const executionHolder = {stackTrace: ''};
     /**
@@ -89,7 +89,7 @@ function buildExecRunner(notRetriable, runOpts) {
       }
 
       return resolve(cmd);
-    })
+    });
   });
 }
 

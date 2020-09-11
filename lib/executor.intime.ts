@@ -44,7 +44,7 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
       const commadData = commands.splice(0, 1)[0] as {cmd: string, attemptsCount: number};
       const executionIndex = commadData.attemptsCount--;
 
-      const result = await executeCommandAsync(commadData.cmd, executionIndex).catch(console.error)
+      const result = await executeCommandAsync(commadData.cmd, executionIndex).catch(console.error);
 
       if (result) {
         commadData.cmd = (result as string);
@@ -57,7 +57,7 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
         }
       }
 
-      currentSessionCount -= 1
+      currentSessionCount -= 1;
     }
   }
 
@@ -65,9 +65,13 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     const asserter = setInterval(() => runCommand(commands), pollTime);
 
     do {
-      if (commands.length) {await runCommand(commands)}
-      if (currentSessionCount) {await sleep(pollTime)}
-    } while ((commands as Array<{attemptsCount: number}>).some(({attemptsCount}) => attemptsCount) || currentSessionCount)
+      if (commands.length) {
+await runCommand(commands);
+}
+      if (currentSessionCount) {
+await sleep(pollTime);
+}
+    } while ((commands as Array<{attemptsCount: number}>).some(({attemptsCount}) => attemptsCount) || currentSessionCount);
 
     clearInterval(asserter);
     return commands;
@@ -75,11 +79,11 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
 
   await runCommandsArray(inTimeCommands);
 
-  logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+  logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
   logger.info('Failed processes count:', retriable.length + notRetriable.length);
   logger.info('Not retriable processes count:', notRetriable.length);
   logger.info('Retriable processes count:', retriable.length);
-  logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+  logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
 
   return {
     retriable,
@@ -89,4 +93,4 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
 
 export {
   intimeExecutor
-}
+};

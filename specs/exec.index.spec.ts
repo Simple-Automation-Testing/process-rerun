@@ -13,13 +13,13 @@ test('[P] exec', async function() {
 
   async function waiter() {
     do {
-      await sleep(1)
+      await sleep(1);
     } while (!holder.stackTrace);
   }
 
   wrap(`node -e 'console.log("Hello")'`, holder);
   //
-  await waiter()
+  await waiter();
 
   expect(holder.stackTrace).stringIncludesSubstring('Hello');
 });

@@ -30,7 +30,6 @@ interface IBuildOpts {
   currentExecutionVariable?: string;
 }
 
-
 interface IRunner {
   (commands: string[]): Promise<{notRetriable: string[], retriable: string[]}>;
 }
@@ -53,12 +52,12 @@ const getReruner = ({
     ...rest
   };
 
-  return reRunnerBuilder(reformattedArgs)
-}
+  return reRunnerBuilder(reformattedArgs);
+};
 
 export {
   getReruner,
   getFilesList,
   IBuildOpts,
   IRunner
-}
+};
