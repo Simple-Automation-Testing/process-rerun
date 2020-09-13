@@ -1,6 +1,7 @@
 import {buildCommandExecutor} from './commandExecutorBuilder';
 import {sleep} from './helpers';
 import {logger} from './logger';
+import {shuffleArray} from './utils';
 
 async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: string[]; notRetriable: string[]}> {
   const notRetriable = [];
@@ -16,6 +17,7 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     successExitCode,
     currentExecutionVariable,
     maxThreads,
+    shuffle
   } = runOptions;
 
 
@@ -40,7 +42,9 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     if (maxThreads > currentSessionCount && commands.length) {
 
       currentSessionCount += 1;
-
+      if (shuffle) {
+        shuffleArray(commands);
+      }
       const commadData = commands.splice(0, 1)[0] as {cmd: string, attemptsCount: number};
       const executionIndex = commadData.attemptsCount--;
 
@@ -66,11 +70,11 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
 
     do {
       if (commands.length) {
-await runCommand(commands);
-}
+        await runCommand(commands);
+      }
       if (currentSessionCount) {
-await sleep(pollTime);
-}
+        await sleep(pollTime);
+      }
     } while ((commands as Array<{attemptsCount: number}>).some(({attemptsCount}) => attemptsCount) || currentSessionCount);
 
     clearInterval(asserter);

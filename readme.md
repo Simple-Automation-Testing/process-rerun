@@ -6,7 +6,8 @@ The purpose of this library is - build simple and flexible interface for paralle
 
 [Documents](#documents)<br>
 [Usage](#usage)<br>
-[getFilesList](#getfileslist)<br>
+[getFilesList](#getfileslist)<br><br>
+[Changelog](#changelog)
 
 ## Documents
 
@@ -15,15 +16,16 @@ The purpose of this library is - build simple and flexible interface for paralle
 arguments | description
 --- | ---
 **`buildOpts`** | Type: `object` <br> Options for executor
-**`buildOpts.maxThreads`** | Type: `number`, <br> How many threads can be executed in same time <br> **Default threads count is 5**
-**`buildOpts.attemptsCount`** | Type: `number`, <br> How many times can we try to execute command for success result **in next cycle will be executed only faild command, success commands will not be reexecuted** <br> **Default attempts count is 2**
-**`buildOpts.pollTime`** | Type: `number`, <br> Period for recheck about free thread <br> **Default is 1 second**
-**`buildOpts.successExitCode`** | Type: `number`, <br> Exit code what will be used for succes process check <br> **Default is 0**
-**`buildOpts.logLevel`** | Type: `string`, one of 'ERROR', 'WARN', 'INFO', 'VERBOSE', <br> ERROR - only errors, WARN -  errors and warnings, INFO - errors, warnings and information, VERBOSE - full logging <br> **Default is 'ERROR'**
-**`buildOpts.currentExecutionVariable`** | Type: `string`, will be execution variable with execution index for every cycle will be ++ <br>
-**`buildOpts.everyCycleCallback`** | Type: `function`, <br> Optional. everyCycleCallback will be executed after cycle, before next execution cycle.<br> **Default is false**
-**`buildOpts.processResultAnalyzer`** | Type: `function`, <br> Optional. processResultAnalyzer is a function where arguments are original command, execution stack trace and notRetriable array processResultAnalyzer should return a new command what will be executed in next cycle or **null** - if satisfactory result <br>
-**`buildOpts.longestProcessTime`** | Type: `number`, <br> In case if command execution time is longer than longest Process Time - executor will kill it automatically and will try to execute this command again. <br> **Default time is 45 seconds**
+**`buildOpts.maxThreads`** | **Optional** Type: `number`, <br> How many threads can be executed in same time <br> **Default threads count is 5**
+**`buildOpts.shuffle`** | **Optional** Type: `boolean`, <br> Shuffle commands during execution <br> **Default threads count is 5**
+**`buildOpts.attemptsCount`** | **Optional** Type: `number`, <br> How many times can we try to execute command for success result **in next cycle will be executed only faild command, success commands will not be reexecuted** <br> **Default attempts count is 2**
+**`buildOpts.pollTime`** | **Optional** Type: `number`, <br> Period for recheck about free thread <br> **Default is 1 second**
+**`buildOpts.successExitCode`** | **Optional** Type: `number`, <br> Exit code what will be used for succes process check <br> **Default is 0**
+**`buildOpts.logLevel`** | Type: `string`, one of 'ERROR', 'WARN', 'INFO', 'VERBOSE', 'MUTE' <br> ERROR - only errors, WARN -  errors and warnings, INFO - errors, warnings and information, VERBOSE - full logging, MUTE - mute execution output <br> **Default is 'ERROR'**
+**`buildOpts.currentExecutionVariable`** | **Optional** Type: `string`, will be execution variable with execution index for every cycle will be ++<br>
+**`buildOpts.everyCycleCallback`** | **Optional** Type: `function`, <br> Optional. everyCycleCallback will be executed after cycle, before next execution cycle.<br> **Default is false**
+**`buildOpts.processResultAnalyzer`** | **Optional** Type: `function`, <br> Optional. processResultAnalyzer is a function where arguments are original command, execution stack trace and notRetriable array processResultAnalyzer should return a new command what will be executed in next cycle or **null** - if satisfactory result <br>
+**`buildOpts.longestProcessTime`** | **Optional** Type: `number`, <br> In case if command execution time is longer than longest Process Time - executor will kill it automatically and will try to execute this command again. <br> **Default time is 45 seconds**
 
 ## Usage
 
@@ -81,3 +83,6 @@ const {getFilesList} = require('process-rerun');
 
 const readmePath = getFilesList(__dirname).find((filePath) => filePath.include('readme.md'));
 ```
+
+## Changelog
+[Version 0.1.11](/docs/verion0.1.11.md)

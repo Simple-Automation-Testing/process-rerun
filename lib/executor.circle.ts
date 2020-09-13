@@ -1,7 +1,7 @@
 import {buildCommandExecutor} from './commandExecutorBuilder';
 import {sleep} from './helpers';
 import {logger} from './logger';
-
+import {shuffleArray} from './utils';
 
 async function circleExecutor(runOptions, commandsArray): Promise<{retriable: string[]; notRetriable: string[]}> {
   const notRetriable = [];
@@ -17,11 +17,12 @@ async function circleExecutor(runOptions, commandsArray): Promise<{retriable: st
     successExitCode,
     currentExecutionVariable,
     maxThreads,
+    shuffle,
   } = runOptions;
 
   /**
    * @see
-   * remove likt to initial commands array
+   * remove lint to initial commands array
    * commandsArray = [...commandsArray]
    */
   commandsArray = [...commandsArray];
@@ -41,6 +42,9 @@ async function circleExecutor(runOptions, commandsArray): Promise<{retriable: st
   async function runCommand(commands, retriable, runIndex) {
     if (maxThreads > currentSessionCount && commands.length) {
       currentSessionCount += 1;
+      if (shuffle) {
+        shuffleArray(commands);
+      }
       const result = await executeCommandAsync(commands.splice(0, 1)[0], runIndex).catch(console.error);
       if (result) {
         retriable.push(result);
@@ -54,11 +58,11 @@ async function circleExecutor(runOptions, commandsArray): Promise<{retriable: st
 
     do {
       if (commands.length) {
-await runCommand(commands, retriable, executionCount);
-}
+        await runCommand(commands, retriable, executionCount);
+      }
       if (currentSessionCount) {
-await sleep(pollTime);
-}
+        await sleep(pollTime);
+      }
     } while (commands.length || currentSessionCount);
 
     if (everyCycleCallback && typeof everyCycleCallback === 'function') {
