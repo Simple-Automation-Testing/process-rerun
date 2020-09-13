@@ -1,28 +1,28 @@
 import {expect} from 'assertior';
-import {circleExecutor} from '../lib/executor.circle';
+import {intimeExecutor} from '../lib/executor.intime';
 import {setLogLevel} from '../lib/logger';
 
 setLogLevel('MUTE');
 
-test('[p] circleExecutor longestProcessTime kill procs', async function() {
+test('[p] intimeExecutor longestProcessTime kill procs', async function() {
   const commands = [
     `node -e 'setTimeout(() => console.log("Success first"), 5000)'`
   ];
-  const result = await circleExecutor({
+  const result = await intimeExecutor({
     maxThreads: 4,
     attemptsCount: 1,
     longestProcessTime: 1000,
-    pollTime: 10
+    pollTime: 10,
   }, commands);
   expect(result.notRetriable).toDeepEqual([]);
   expect(result.retriable).toDeepEqual(commands);
 });
 
-test('[p] circleExecutor longestProcessTime ', async function() {
+test('[p] intimeExecutor longestProcessTime ', async function() {
   const commands = [
     `node -e 'setTimeout(() => console.log("Success first"), 5000)'`
   ];
-  const result = await circleExecutor({
+  const result = await intimeExecutor({
     maxThreads: 4,
     attemptsCount: 1,
     longestProcessTime: 10000,
@@ -34,12 +34,12 @@ test('[p] circleExecutor longestProcessTime ', async function() {
   expect(result.retriable.length).toEqual(0);
 });
 
-test('[p] circleExecutor longestProcessTime  kill processResultAnalyzer return null notRetriable auto push', async function() {
+test('[p] intimeExecutor longestProcessTime  kill processResultAnalyzer return null notRetriable auto push', async function() {
   const commands = [
     `node -e 'setTimeout(() => console.log("Success first"), 5000)'`,
     `node -e 'setTimeout(() => console.log("Success second"), 5000)'`
   ];
-  const result = await circleExecutor({
+  const result = await intimeExecutor({
     maxThreads: 4,
     attemptsCount: 1,
     longestProcessTime: 10,
@@ -52,11 +52,11 @@ test('[p] circleExecutor longestProcessTime  kill processResultAnalyzer return n
   expect(result.retriable.length).toEqual(0);
 });
 
-test('[p] circleExecutor longestProcessTime  kill processResultAnalyzer return cmd notRetriable auto push', async function() {
+test('[p] intimeExecutor longestProcessTime  kill processResultAnalyzer return cmd notRetriable auto push', async function() {
   const commands = [
     `node -e 'setTimeout(() => console.log("Success first"), 5000)'`,
   ];
-  const result = await circleExecutor({
+  const result = await intimeExecutor({
     maxThreads: 4,
     attemptsCount: 1,
     longestProcessTime: 10,
@@ -67,7 +67,7 @@ test('[p] circleExecutor longestProcessTime  kill processResultAnalyzer return c
   expect(result.retriable).toDeepEqual(commands);
 });
 
-test('[p] circleExecutor processResultAnalyzer arguments', async function() {
+test('[p] intimeExecutor processResultAnalyzer arguments', async function() {
   const commands = [
     `node -e 'setTimeout(() => {console.log("Success first"); throw new Error("This is test error")}, 1000)'`,
   ];
@@ -80,7 +80,7 @@ test('[p] circleExecutor processResultAnalyzer arguments', async function() {
     notRetriableTest = [...notRetriable];
     return cmd;
   };
-  const result = await circleExecutor({
+  const result = await intimeExecutor({
     maxThreads: 4,
     attemptsCount: 1,
     longestProcessTime: 10 * 1000,
@@ -94,14 +94,14 @@ test('[p] circleExecutor processResultAnalyzer arguments', async function() {
   expect(stackTraceTest).stringIncludesSubstring('This is test error');
 });
 
-test('[p] circleExecutor successExitCode', async function() {
+test('[p] intimeExecutor successExitCode', async function() {
   const commands = [
     `node -e 'setTimeout(() => {console.log("Success first"); process.exit(100)}, 1000)'`,
   ];
   const processResultAnalyzer = (cmd) => {
     return cmd;
   };
-  const result = await circleExecutor({
+  const result = await intimeExecutor({
     maxThreads: 4,
     attemptsCount: 1,
     longestProcessTime: 10 * 1000,

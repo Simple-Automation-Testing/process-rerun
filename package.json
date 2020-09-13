@@ -12,8 +12,7 @@
     "test": "jest",
     "test:cover": "jest --collect-coverage",
     "build": "tsc",
-    "lint": "eslint --ext .ts ./ --fix",
-    "postinstall": "node ./postinstall.js"
+    "lint": "eslint --ext .ts ./ --fix"
   },
   "author": {
     "name": "Dmytro Potapov",
@@ -23,12 +22,14 @@
   "keywords": [
     "flaky",
     "flaky-tests",
+    "flaky-processes",
     "protractor",
     "selenium",
     "rerun",
     "failed-tests",
     "protractor-rerun",
-    "parallel execution"
+    "parallel execution",
+    "parallel processes"
   ],
   "devDependencies": {
     "@types/jest": "^26.0.10",

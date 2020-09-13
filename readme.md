@@ -17,6 +17,7 @@ arguments | description
 --- | ---
 **`buildOpts`** | Type: `object` <br> Options for executor
 **`buildOpts.maxThreads`** | **Optional** Type: `number`, <br> How many threads can be executed in same time <br> **Default threads count is 5**
+**`buildOpts.intime`** | **Optional** Type: `boolean`, <br> if intime is true intime execution approach will be enabled<br> **Default  is false**
 **`buildOpts.shuffle`** | **Optional** Type: `boolean`, <br> Shuffle commands during execution <br> **Default threads count is 5**
 **`buildOpts.attemptsCount`** | **Optional** Type: `number`, <br> How many times can we try to execute command for success result **in next cycle will be executed only faild command, success commands will not be reexecuted** <br> **Default attempts count is 2**
 **`buildOpts.pollTime`** | **Optional** Type: `number`, <br> Period for recheck about free thread <br> **Default is 1 second**
@@ -83,6 +84,41 @@ const {getFilesList} = require('process-rerun');
 
 const readmePath = getFilesList(__dirname).find((filePath) => filePath.include('readme.md'));
 ```
+
+## intime approach vs circle approach
+
+### circle approach
+
+five processes execution, two execution attempts, five parallel execution <br>
+
+first execution attempt (three failed) | second execution attempt (one failed) | third execution attempt (o failed)
+--- | --- | ----
+1 p1 --------------------------> success | p2 ---> success                       | p4 -----------> success
+2 p2 ---> fail                           | p4 -----------> fail                  |
+3 p3 -------> fail                       | p3 -------> success                   |
+4 p4 -----------> fail                   |                                       |
+5 p5 -----> success                      |                                       |
+
+Full execution time: <br>
+p1 (first attempt) --------------------------> + p4 (second attempt) -----------> + (third attempt) p4 ----------->
+
+### intime approach (with same fail scheme)
+
+every process has attemp count timer
+
+f - fail <br>
+s - success <br>
+1 p1 -------------------------->s             <br>
+2 p2 --->f--->s                               <br>
+3 p3 ------->f------->s                       <br>
+4 p4 ----------->f                            <br>
+5 p5 ----->s(p4)----------->f----------->s    <br>
+
+Full execution time: <br>
+
+5 p5 ----->s(p4)----------->f----------->s
+
+Failed process will check that free parallel exists and start execution when free parallel will be found.
 
 ## Changelog
 [Version 0.1.11](/docs/verion0.1.11.md)

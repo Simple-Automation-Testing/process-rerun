@@ -51,10 +51,10 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
       const result = await executeCommandAsync(commadData.cmd, executionIndex).catch(console.error);
 
       if (result) {
+        logger.info(`command ${commadData.cmd} failed`);
+        logger.info(`attempts count for command is ${commadData.attemptsCount}`);
         commadData.cmd = (result as string);
-        commadData.attemptsCount--;
-
-        if (commadData.attemptsCount) {
+        if (commadData.attemptsCount > 0) {
           commands.push(commadData);
         } else {
           retriable.push(commadData.cmd);
