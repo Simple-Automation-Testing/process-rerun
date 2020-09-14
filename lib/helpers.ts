@@ -18,8 +18,8 @@ const getFilesList = function(dir: string, fileList: string[] = [], directoryToS
       (directoryToSkip instanceof RegExp && file.match(directoryToSkip));
 
     if (shouldBeExcluded) {
-return;
-}
+      return;
+    }
 
     if (isDirr && !ignoreSubDirs) {
       fileList = getFilesList(path.join(dir, file), fileList, directoryToSkip, ignoreSubDirs);

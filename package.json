@@ -18,6 +18,9 @@
     "name": "Dmytro Potapov",
     "email": "potapovd3012@gmail.com"
   },
+  "files": [
+    "./built/**/*"
+  ],
   "license": "MIT",
   "keywords": [
     "flaky",
@@ -46,6 +49,6 @@
     "eslint": "^7.6.0"
   },
   "engines": {
-    "node": ">=8.9.0"
+    "node": ">=10.22.0"
   }
 }
