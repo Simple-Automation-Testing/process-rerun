@@ -6,3 +6,5 @@ tsconfig.json
 jest.config.js
 readme.md
 .eslint*
+docs
+.github
