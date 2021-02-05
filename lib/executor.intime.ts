@@ -64,7 +64,6 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
       currentSessionCount -= 1;
     }
   }
-
   async function runCommandsArray(commands) {
     const asserter = setInterval(() => runCommand(commands), pollTime);
 
@@ -80,13 +79,14 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     clearInterval(asserter);
     return commands;
   }
-
+  const startTime = Date.now();
   await runCommandsArray(inTimeCommands);
 
   logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
   logger.info('Failed processes count:', retriable.length + notRetriable.length);
   logger.info('Not retriable processes count:', notRetriable.length);
   logger.info('Retriable processes count:', retriable.length);
+  logger.info(`Execution time: ${(Date.now() - startTime) / 1000} seconds`,);
   logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
 
   return {

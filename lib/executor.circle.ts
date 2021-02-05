@@ -78,7 +78,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{retriable: st
   }
   let resolvedCommandsArray = [...commandsArray];
   const retriable = [];
-
+  const startTime = Date.now();
   for (let index = 0; index < attemptsCount; index++) {
     resolvedCommandsArray = await runCommandsArray(resolvedCommandsArray, [], index);
     if (!resolvedCommandsArray.length) {
@@ -98,6 +98,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{retriable: st
   logger.info('Failed processes count:', retriable.length + notRetriable.length);
   logger.info('Not retriable processes count:', notRetriable.length);
   logger.info('Retriable processes count:', retriable.length);
+  logger.info(`Execution time: ${(Date.now() - startTime) / 1000} seconds`,);
   logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
 
   return {
