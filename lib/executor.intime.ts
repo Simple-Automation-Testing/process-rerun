@@ -1,4 +1,4 @@
-import {buildCommandExecutor} from './commandExecutorBuilder';
+import {buildCommandExecutor} from './command.executor.builder';
 import {sleep} from './helpers';
 import {logger} from './logger';
 import {shuffleArray} from './utils';
