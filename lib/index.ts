@@ -4,11 +4,7 @@ import {circleExecutor} from './executor.circle';
 import {intimeExecutor} from './executor.intime';
 
 function reRunnerBuilder(runOptions) {
-  const {
-    logLevel = 'ERROR',
-    intime = false,
-    ...executorOptions
-  } = runOptions;
+  const {logLevel = 'ERROR', intime = false, ...executorOptions} = runOptions;
 
   setLogLevel(logLevel);
   if (intime) {
@@ -27,7 +23,9 @@ interface IBuildOpts {
   pollTime?: number;
   processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | null | void;
   everyCycleCallback?: () => void;
+  watcher?: () => void;
   currentExecutionVariable?: string;
+  logProcessesProgress?: boolean;
 }
 
 interface IRunner {

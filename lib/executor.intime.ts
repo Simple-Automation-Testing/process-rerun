@@ -17,7 +17,9 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     successExitCode,
     currentExecutionVariable,
     maxThreads,
-    shuffle
+    shuffle,
+    watcher,
+    logProcessesProgress,
   } = runOptions;
 
 
@@ -64,8 +66,15 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
       currentSessionCount -= 1;
     }
   }
-  async function runCommandsArray(commands) {
+  async function runCommandsArray(commands: any[]) {
+    const initialCommandsCount = commands.length;
     const asserter = setInterval(() => runCommand(commands), pollTime);
+
+    const logProcessesProgressLoggerRunner = logProcessesProgress && setInterval(() => {
+      logger.info(`initial processes quantity ${initialCommandsCount}`);
+      logger.info(`in progress ${commands.length}`);
+    }, 5000);
+    const watcherRunner = watcher && setInterval(watcher, 5000);
 
     do {
       if (commands.length) {
@@ -77,6 +86,13 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     } while ((commands as Array<{attemptsCount: number}>).some(({attemptsCount}) => attemptsCount) || currentSessionCount);
 
     clearInterval(asserter);
+    if (logProcessesProgressLoggerRunner) {
+      clearInterval(logProcessesProgressLoggerRunner);
+    }
+    if (watcherRunner) {
+      clearInterval(watcherRunner);
+    }
+
     return commands;
   }
   const startTime = Date.now();
