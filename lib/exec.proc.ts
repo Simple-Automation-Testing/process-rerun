@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { isFunction, isAsyncFunction, isNumber } from 'sat-utils';
-import { millisecondsToMinutes } from './utils';
+import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes } from 'sat-utils';
 import { internalLogProcessResult } from './logger.execution';
 import { execute } from './exec';
 import { logger } from './logger';

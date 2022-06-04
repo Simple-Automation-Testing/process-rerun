@@ -1,9 +1,9 @@
+import { millisecondsToMinutes } from 'sat-utils';
 import { logger } from './logger';
-import { millisecondsToMinutes } from './utils';
 
-function internalLogStartCycle(maxThreads: number | string, attemptsCount: number | string, inTimeCommands: string[]) {
+function internalLogStartCycle(maxThreads: number | string, attemptsCount: number | string, commands: string[]) {
   logger.info(`Threads count is: ${maxThreads}`);
-  logger.info(`Commands count: ${inTimeCommands.length}`);
+  logger.info(`Commands count: ${commands.length}`);
   logger.info(`Attempts count is: ${attemptsCount}`);
 }
 

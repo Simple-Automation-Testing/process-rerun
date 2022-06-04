@@ -27,6 +27,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     shuffle,
     logProcessesProgress,
     watcher,
+    logProcessResult,
     logStartCycle = internalLogStartCycle,
     logEndCycle = internalLogEndCycle,
     logIteractionCycle = internalLogIteractionCycle,
@@ -48,6 +49,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     processResultAnalyzer,
     pollTime,
     successExitCode,
+    logProcessResult,
   });
 
   async function runCommand(commands, retriable, runIndex) {
