@@ -6,6 +6,4 @@ class ProcessRerunError extends Error {
   }
 }
 
-export {
-  ProcessRerunError
-};
+export { ProcessRerunError };

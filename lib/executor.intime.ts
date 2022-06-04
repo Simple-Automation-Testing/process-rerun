@@ -1,9 +1,15 @@
-import {buildCommandExecutor} from './command.executor.builder';
-import {sleep} from './helpers';
-import {logger} from './logger';
-import {shuffleArray} from './utils';
+import { shuffleArrMutable } from 'sat-utils';
+import { buildCommandExecutor } from './command.executor.builder';
+import { sleep } from './helpers';
+import { logger } from './logger';
+import {
+  internalLogStartCycle,
+  internalLogEndCycle,
+  internalLogMiddleResultsCycle,
+  internalLogIntimeCommand,
+} from './logger.execution';
 
-async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: string[]; notRetriable: string[]}> {
+async function intimeExecutor(runOptions, commandsArray): Promise<{ retriable: string[]; notRetriable: string[] }> {
   const notRetriable = [];
   const retriable = [];
 
@@ -20,42 +26,43 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     shuffle,
     watcher,
     logProcessesProgress,
+    logStartCycle = internalLogStartCycle,
+    logEndCycle = internalLogEndCycle,
+    logMiddleResultsCycle = internalLogMiddleResultsCycle,
+    logIntimeCommand = internalLogIntimeCommand,
   } = runOptions;
-
 
   const executeCommandAsync = buildCommandExecutor(notRetriable, {
     currentExecutionVariable,
     longestProcessTime,
     processResultAnalyzer,
     pollTime,
-    successExitCode
+    successExitCode,
   });
 
-  const inTimeCommands = commandsArray.map((cmd) => ({
+  const inTimeCommands = commandsArray.map(cmd => ({
     attemptsCount,
-    cmd
+    cmd,
   }));
 
-  logger.info(`Threads count is: ${maxThreads}`);
-  logger.info(`Commands count: ${inTimeCommands.length}`);
-  logger.info(`Attempts count is: ${attemptsCount}`);
+  logStartCycle(maxThreads, attemptsCount, inTimeCommands);
 
   async function runCommand(commands) {
     if (maxThreads > currentSessionCount && commands.length) {
-
       currentSessionCount += 1;
       if (shuffle) {
-        shuffleArray(commands);
+        shuffleArrMutable(commands);
       }
-      const commadData = commands.splice(0, 1)[0] as {cmd: string, attemptsCount: number};
+      const commadData = commands.splice(0, 1)[0] as { cmd: string; attemptsCount: number };
       const executionIndex = commadData.attemptsCount--;
 
-      const result = await executeCommandAsync(commadData.cmd, attemptsCount - executionIndex).catch(console.error);
+      const result = await executeCommandAsync(commadData.cmd, attemptsCount - executionIndex).catch(error =>
+        logger.error(error),
+      );
 
       if (result) {
-        logger.info(`command ${commadData.cmd} failed`);
-        logger.info(`attempts count for command is ${commadData.attemptsCount}`);
-        commadData.cmd = (result as string);
+        logIntimeCommand(commadData);
+        commadData.cmd = result as string;
         if (commadData.attemptsCount > 0) {
           commands.push(commadData);
         } else {
@@ -70,10 +77,8 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
     const initialCommandsCount = commands.length;
     const asserter = setInterval(() => runCommand(commands), pollTime);
 
-    const logProcessesProgressLoggerRunner = logProcessesProgress && setInterval(() => {
-      logger.info(`initial processes quantity ${initialCommandsCount}`);
-      logger.info(`in progress ${commands.length}`);
-    }, 5000);
+    const logProcessesProgressLoggerRunner =
+      logProcessesProgress && setInterval(() => logMiddleResultsCycle(initialCommandsCount, commands), 5000);
     const watcherRunner = watcher && setInterval(watcher, 5000);
 
     do {
@@ -83,7 +88,10 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
       if (currentSessionCount) {
         await sleep(pollTime);
       }
-    } while ((commands as Array<{attemptsCount: number}>).some(({attemptsCount}) => attemptsCount) || currentSessionCount);
+    } while (
+      (commands as Array<{ attemptsCount: number }>).some(({ attemptsCount }) => attemptsCount) ||
+      currentSessionCount
+    );
 
     clearInterval(asserter);
     if (logProcessesProgressLoggerRunner) {
@@ -98,19 +106,12 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{retriable: st
   const startTime = Date.now();
   await runCommandsArray(inTimeCommands);
 
-  logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-  logger.info('Failed processes count:', retriable.length + notRetriable.length);
-  logger.info('Not retriable processes count:', notRetriable.length);
-  logger.info('Retriable processes count:', retriable.length);
-  logger.info(`Execution time: ${(Date.now() - startTime) / 1000} seconds`,);
-  logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+  logEndCycle(retriable, notRetriable, startTime);
 
   return {
     retriable,
-    notRetriable
+    notRetriable,
   };
 }
 
-export {
-  intimeExecutor
-};
+export { intimeExecutor };

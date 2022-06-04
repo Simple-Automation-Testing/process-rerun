@@ -39,13 +39,8 @@ function sleep(time: number): Promise<void> {
   return new Promise((res) => setTimeout(res, time));
 }
 
-function returnStringType(arg: any): string {
-  return Object.prototype.toString.call(arg);
-}
-
 export {
   getPollTime,
   sleep,
   getFilesList,
-  returnStringType
 };
