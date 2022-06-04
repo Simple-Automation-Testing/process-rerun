@@ -28,6 +28,8 @@ type IBuildOpts = {
   logIteractionCycle?: (cycleNumber: number, commands: string[]) => void;
   logMiddleResultsCycle?: (initialCount: number, commands: string[]) => void;
   logProcessResult?: (cmd: string, startTime: number, execProc, error, stdout, stderr) => void;
+  onExitCloseProcess?: (execProc, code: null, signal: string | number) => void;
+  onErrorProcess?: (execProc, error) => void;
 };
 
 type IRunner = {

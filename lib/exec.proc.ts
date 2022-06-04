@@ -14,6 +14,8 @@ function buildExecRunner(notRetriable, runOpts) {
     pollTime,
     successExitCode = 0,
     logProcessResult = internalLogProcessResult,
+    onExitCloseProcess,
+    onErrorProcess,
   } = runOpts;
 
   if (!isNumber(successExitCode)) {
@@ -52,17 +54,18 @@ function buildExecRunner(notRetriable, runOpts) {
 
       const watcher = setInterval(() => killTooLongExecution(execProc), pollTime);
 
-      execProc.on('exit', (code, signal) => {
-        logger.info(`EXIT PROCESS: PID="${execProc.pid}", code="${code}" and signal="${signal}"`);
-      });
+      if (onExitCloseProcess) {
+        execProc.on('exit', (code, signal) => onExitCloseProcess(execProc, code, signal));
+      }
 
-      execProc.on('error', e => {
-        logger.info(`ERROR PROCESS: PID="${execProc.pid}"`);
-        logger.error(e);
-      });
+      if (onErrorProcess) {
+        execProc.on('error', error => onErrorProcess(execProc, error));
+      }
 
       execProc.on('close', async (code, signal) => {
-        logger.info(`CLOSE PROCESS: PID="${execProc.pid}", code="${code}" and signal="${signal}"`);
+        if (onExitCloseProcess) {
+          onExitCloseProcess(execProc, code, signal);
+        }
 
         // clear watcher interval
         clearInterval(watcher);
