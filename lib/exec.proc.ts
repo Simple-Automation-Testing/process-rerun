@@ -42,12 +42,12 @@ function buildExecRunner(notRetriable, runOpts) {
       const killTooLongExecution = procWhatShouldBeKilled => {
         const executionTime = +Date.now() - startTime;
         if (executionTime > longestProcessTime) {
-          logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}`);
           if (executionTime - longestProcessTime > 5000) {
-            execProc.emit('exit', 100, 'PRO_RERUN_KILL');
-            execProc.emit('close', 100, 'PRO_RERUN_KILL');
+            procWhatShouldBeKilled.emit('exit', 100, 'PRO_RERUN_KILL');
+            procWhatShouldBeKilled.emit('close', 100, 'PRO_RERUN_KILL');
           } else {
-            procWhatShouldBeKilled.kill();
+            logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}`);
+            procWhatShouldBeKilled.kill('SIGKILL');
           }
         }
       };
