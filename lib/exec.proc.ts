@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes } from 'sat-utils';
+import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes, isString, isBoolean } from 'sat-utils';
 import { internalLogProcessResult } from './logger.execution';
 import { execute } from './exec';
 import { logger } from './logger';
@@ -83,19 +83,30 @@ function buildExecRunner(notRetriable, runOpts) {
         if (isFunction(processResultAnalyzer)) {
           const countInNotRetriableBeforeAnalyzation = notRetriable.length;
 
-          const processResultAnalyzerResultCommandOrNull = processResultAnalyzer(
-            cmd,
-            executionHolder.stackTrace,
-            notRetriable,
-          );
+          const analyzationResult = processResultAnalyzer(cmd, executionHolder.stackTrace, notRetriable);
+
+          if (!isString(analyzationResult) && !isBoolean(analyzationResult)) {
+            logger.warn('processResultAnalyzer should return boolean or string');
+          }
+
+          // if analyzationResult is string - we want to re-execute command
+          if (isString(analyzationResult)) {
+            return resolve(analyzationResult);
+          }
+
+          // if analyzationResult is true - we make assumption that process was finished successfully
+          if (isBoolean(analyzationResult) && analyzationResult) {
+            return resolve(null);
+          }
 
           if (
-            !processResultAnalyzerResultCommandOrNull &&
-            countInNotRetriableBeforeAnalyzation === notRetriable.length
+            countInNotRetriableBeforeAnalyzation === notRetriable.length ||
+            (isBoolean(analyzationResult) && !analyzationResult)
           ) {
             notRetriable.push(cmd);
           }
-          return resolve(processResultAnalyzerResultCommandOrNull);
+
+          return resolve(null);
         }
 
         return resolve(cmd);

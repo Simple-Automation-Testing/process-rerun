@@ -1,6 +1,6 @@
 {
   "name": "process-rerun",
-  "version": "0.2.9",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/potapovDim/protractor-rerun.git"

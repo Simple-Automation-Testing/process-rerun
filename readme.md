@@ -25,7 +25,7 @@ arguments | description
 **`buildOpts.logLevel`** | Type: `string`, one of 'ERROR', 'WARN', 'INFO', 'VERBOSE', 'MUTE' <br> ERROR - only errors, WARN -  errors and warnings, INFO - errors, warnings and information, VERBOSE - full logging, MUTE - mute execution output <br> **Default is 'ERROR'**
 **`buildOpts.currentExecutionVariable`** | **Optional** Type: `string`, will be execution variable with execution index for every cycle will be ++<br>
 **`buildOpts.everyCycleCallback`** | **Optional** Type: `function`, <br> Optional. everyCycleCallback will be executed after cycle, before next execution cycle.<br> **Default is false**
-**`buildOpts.processResultAnalyzer`** | **Optional** Type: `function`, <br> Optional. processResultAnalyzer is a function where arguments are original command, execution stack trace and notRetriable array processResultAnalyzer should return a new command what will be executed in next cycle or **null** - if satisfactory result <br>
+**`buildOpts.processResultAnalyzer`** | **Optional** Type: `function`, <br> Optional. processResultAnalyzer is a function where arguments are original command, execution stack trace and notRetriable array processResultAnalyzer should return a new command what will be executed in next cycle or **boolean** - if satisfactory result <br>
 **`buildOpts.longestProcessTime`** | **Optional** Type: `number`, <br> In case if command execution time is longer than longest Process Time - executor will kill it automatically and will try to execute this command again. <br> **Default time is 45 seconds**
 
 ## Usage

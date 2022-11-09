@@ -11,14 +11,14 @@ function reRunnerBuilder(runOptions) {
   return intime ? intimeExecutor.bind(this, executorOptions) : circleExecutor.bind(this, executorOptions);
 }
 
-type IBuildOpts = {
+export type TBuildOpts = {
   logLevel?: 'ERROR' | 'WARN' | 'INFO' | 'VERBOSE' | 'MUTE';
   maxThreads?: number;
   attemptsCount?: number;
   longestProcessTime?: number;
   successExitCode?: number;
   pollTime?: number;
-  processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | null | void;
+  processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | boolean;
   everyCycleCallback?: () => void;
   watcher?: () => void;
   currentExecutionVariable?: string;
@@ -32,7 +32,7 @@ type IBuildOpts = {
   onErrorProcess?: (execProc, error) => void;
 };
 
-type IRunner = {
+export type TRunner = {
   (commands: string[]): Promise<{ notRetriable: string[]; retriable: string[] }>;
 };
 
@@ -43,7 +43,7 @@ const getReruner = ({
   pollTime = 1000,
   successExitCode = 0,
   ...rest
-}: IBuildOpts = {}): IRunner => {
+}: TBuildOpts = {}): TRunner => {
   const reformattedArgs = {
     longestProcessTime,
     maxThreads,
@@ -56,6 +56,6 @@ const getReruner = ({
   return reRunnerBuilder(reformattedArgs);
 };
 
-export { getReruner, IBuildOpts, IRunner };
+export { getReruner };
 
 export { getFilesList } from './helpers';
