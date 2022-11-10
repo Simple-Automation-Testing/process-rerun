@@ -2,6 +2,7 @@ import { logger } from 'sat-utils';
 import { getPollTime } from './helpers';
 import { circleExecutor } from './executor.circle';
 import { intimeExecutor } from './executor.intime';
+import type { ExecOptions } from 'child_process';
 
 function reRunnerBuilder(runOptions) {
   const { logLevel = 'ERROR', intime = false, ...executorOptions } = runOptions;
@@ -18,6 +19,7 @@ export type TBuildOpts = {
   longestProcessTime?: number;
   successExitCode?: number;
   pollTime?: number;
+  execOpts?: ExecOptions;
   processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | boolean;
   everyCycleCallback?: () => void;
   watcher?: () => void;

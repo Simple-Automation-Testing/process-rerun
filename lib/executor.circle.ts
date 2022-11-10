@@ -34,6 +34,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     logMiddleResultsCycle = internalLogMiddleResultsCycle,
     onExitCloseProcess,
     onErrorProcess,
+    execOpts,
   } = runOptions;
 
   /**
@@ -54,6 +55,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     logProcessResult,
     onExitCloseProcess,
     onErrorProcess,
+    execOpts,
   });
 
   async function runCommand(commands, retriable, runIndex) {

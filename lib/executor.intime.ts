@@ -30,6 +30,7 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{ retriable: s
     logEndCycle = internalLogEndCycle,
     logMiddleResultsCycle = internalLogMiddleResultsCycle,
     logIntimeCommand = internalLogIntimeCommand,
+    execOpts,
   } = runOptions;
 
   const executeCommandAsync = buildCommandExecutor(notRetriable, {
@@ -38,6 +39,7 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{ retriable: s
     processResultAnalyzer,
     pollTime,
     successExitCode,
+    execOpts,
   });
 
   const inTimeCommands = commandsArray.map(cmd => ({
