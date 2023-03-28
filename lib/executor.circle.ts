@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { toArray, isFunction, isAsyncFunction, shuffleArrMutable } from 'sat-utils';
+import { toArray, isFunction, isAsyncFunction, shuffleArrMutable, isString } from 'sat-utils';
 import { buildCommandExecutor } from './command.executor.builder';
 import { sleep } from './helpers';
 import { logger } from './logger';
@@ -64,7 +64,14 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
       if (shuffle) {
         shuffleArrMutable(commands);
       }
-      const result = await executeCommandAsync(commands.splice(0, 1)[0], runIndex).catch(error => logger.error(error));
+      let result;
+
+      const commandToExecute = commands.splice(0, 1)[0];
+      if (isString(commandToExecute)) {
+        result = await executeCommandAsync(commandToExecute, runIndex).catch(error => logger.error(error));
+      } else if (isFunction(commandToExecute) || isAsyncFunction(commandToExecute)) {
+        result = await commandToExecute(runIndex).catch(error => logger.error(error));
+      }
 
       if (result) {
         retriable.push(result);

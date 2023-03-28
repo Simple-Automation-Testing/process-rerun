@@ -35,7 +35,7 @@ export type TBuildOpts = {
 };
 
 export type TRunner = {
-  (commands: string[]): Promise<{ notRetriable: string[]; retriable: string[] }>;
+  (commands: string[] | Array<(index: number) => any>): Promise<{ notRetriable: string[]; retriable: string[] }>;
 };
 
 const getReruner = ({

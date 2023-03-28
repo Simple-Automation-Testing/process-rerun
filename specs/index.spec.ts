@@ -1,3 +1,4 @@
+import { sleep } from 'sat-utils';
 import { expect } from 'assertior';
 import { getReruner } from '../lib';
 
@@ -41,7 +42,7 @@ describe('index ', () => {
       maxThreads: 4,
       attemptsCount: 1,
       longestProcessTime: 10,
-      processResultAnalyzer: () => null,
+      processResultAnalyzer: () => false,
       pollTime: 10,
       logLevel: 'MUTE',
     });
@@ -73,7 +74,7 @@ describe('index ', () => {
     ];
     let cmdTest = null;
     let stackTraceTest = null;
-    let notRetriableTest = null;
+    let notRetriableTest: any = null;
     const processResultAnalyzer = (cmd, stackTrace, notRetriable) => {
       cmdTest = cmd;
       stackTraceTest = stackTrace;
@@ -98,6 +99,54 @@ describe('index ', () => {
 
   it('[p] successExitCode', async function () {
     const commands = [`node -e 'setTimeout(() => {console.log("Success first"); process.exit(100)}, 1000)'`];
+    const processResultAnalyzer = cmd => cmd;
+    const runner = getReruner({
+      maxThreads: 4,
+      attemptsCount: 1,
+      longestProcessTime: 10 * 1000,
+      processResultAnalyzer,
+      successExitCode: 100,
+      pollTime: 10,
+      logLevel: 'MUTE',
+    });
+    const result = await runner(commands);
+    expect(result.notRetriable).toDeepEqual([]);
+    expect(result.retriable).toDeepEqual([]);
+  });
+
+  it('[p] successExitCode', async function () {
+    const commands = [
+      async () => {
+        await sleep(500);
+      },
+      async () => {
+        await sleep(500);
+      },
+    ];
+    const processResultAnalyzer = cmd => cmd;
+    const runner = getReruner({
+      maxThreads: 4,
+      attemptsCount: 1,
+      longestProcessTime: 10 * 1000,
+      processResultAnalyzer,
+      successExitCode: 100,
+      pollTime: 10,
+      logLevel: 'MUTE',
+    });
+    const result = await runner(commands);
+    expect(result.notRetriable).toDeepEqual([]);
+    expect(result.retriable).toDeepEqual([]);
+  });
+
+  it('[p] successExitCode', async function () {
+    const commands = [
+      async function test() {
+        await sleep(500);
+      },
+      async () => {
+        await sleep(500);
+      },
+    ];
     const processResultAnalyzer = cmd => cmd;
     const runner = getReruner({
       maxThreads: 4,

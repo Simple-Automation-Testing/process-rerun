@@ -1,4 +1,4 @@
-import { shuffleArrMutable } from 'sat-utils';
+import { shuffleArrMutable, isString, isFunction, isAsyncFunction } from 'sat-utils';
 import { buildCommandExecutor } from './command.executor.builder';
 import { sleep } from './helpers';
 import { logger } from './logger';
@@ -55,12 +55,17 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{ retriable: s
       if (shuffle) {
         shuffleArrMutable(commands);
       }
-      const commadData = commands.splice(0, 1)[0] as { cmd: string; attemptsCount: number };
-      const executionIndex = commadData.attemptsCount--;
+      let result;
+      const commadData = commands.splice(0, 1)[0] as { cmd; attemptsCount: number };
 
-      const result = await executeCommandAsync(commadData.cmd, attemptsCount - executionIndex).catch(error =>
-        logger.error(error),
-      );
+      const executionIndex = commadData.attemptsCount--;
+      if (isString(commadData.cmd)) {
+        result = await executeCommandAsync(commadData.cmd, attemptsCount - executionIndex).catch(error =>
+          logger.error(error),
+        );
+      } else if (isFunction(commadData.cmd) || isAsyncFunction(commadData.cmd)) {
+        result = await commadData.cmd(attemptsCount - executionIndex).catch(error => logger.error(error));
+      }
 
       if (result) {
         logIntimeCommand(commadData);
