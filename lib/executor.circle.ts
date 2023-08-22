@@ -43,6 +43,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
    * commandsArray = toArray(commandsArray);
    */
   commandsArray = toArray(commandsArray);
+  const inProgressCommands = [];
 
   logStartCycle(maxThreads, attemptsCount, commandsArray);
 
@@ -68,9 +69,13 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
 
       const commandToExecute = commands.splice(0, 1)[0];
       if (isString(commandToExecute)) {
+        const index = inProgressCommands.push(commandToExecute) - 1;
         result = await executeCommandAsync(commandToExecute, runIndex).catch(error => logger.error(error));
+        inProgressCommands.splice(index, 1);
       } else if (isFunction(commandToExecute) || isAsyncFunction(commandToExecute)) {
+        const index = inProgressCommands.push(commandToExecute.toString()) - 1;
         result = await commandToExecute(runIndex).catch(error => logger.error(error));
+        inProgressCommands.splice(index, 1);
       }
 
       if (result) {
@@ -87,7 +92,8 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     const asserter = setInterval(() => runCommand(commands, retriable, executionCount), pollTime);
 
     const logProcessesProgressLogger =
-      logProcessesProgress && setInterval(() => logMiddleResultsCycle(initialCommandsCount, commands), 5000);
+      logProcessesProgress &&
+      setInterval(() => logMiddleResultsCycle(initialCommandsCount, commands, inProgressCommands), 5000);
 
     const watcherRunner = watcher && setInterval(watcher, 5000);
 

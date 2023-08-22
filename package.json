@@ -1,6 +1,6 @@
 {
   "name": "process-rerun",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/potapovDim/protractor-rerun.git"
@@ -10,7 +10,7 @@
     "tscw": "tsc -w",
     "validate": "npm ls",
     "test": "mocha $(find specs -name '*.spec.*') --timeout 500000 --require ts-node/register",
-    "build": "rm -rf ./built && tsc",
+    "tsc": "rm -rf ./built && tsc",
     "lint": "eslint --ext .ts ./ --fix"
   },
   "author": {
