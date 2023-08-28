@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes, isString, isBoolean } from 'sat-utils';
+import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes, isString, isBoolean, sleep } from 'sat-utils';
 import { internalLogProcessResult } from './logger.execution';
 import { execute } from './exec';
 import { logger } from './logger';
@@ -39,15 +39,16 @@ function buildExecRunner(notRetriable, runOpts) {
       }
       const execProc = execute(cmd, logProcessResult, executionHolder, execOpts);
 
-      const killTooLongExecution = procWhatShouldBeKilled => {
+      const killTooLongExecution = (procWhatShouldBeKilled: typeof execProc) => {
         const executionTime = +Date.now() - startTime;
         if (executionTime > longestProcessTime) {
-          if (executionTime - longestProcessTime > 5000) {
+          if (executionTime - longestProcessTime > 7500) {
             procWhatShouldBeKilled.emit('exit', 100, 'PRO_RERUN_KILL');
             procWhatShouldBeKilled.emit('close', 100, 'PRO_RERUN_KILL');
+            logger.error(`Process just marked manually as killed but it is possible that it is still running`);
           } else {
-            logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}`);
-            procWhatShouldBeKilled.kill('SIGKILL');
+            logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}\n${cmd}}`);
+            process.kill(procWhatShouldBeKilled.pid);
           }
         }
       };
