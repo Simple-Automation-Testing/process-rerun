@@ -22,7 +22,7 @@ export type TBuildOpts = {
   execOpts?: ExecOptions;
   processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | boolean;
   everyCycleCallback?: () => void;
-  watcher?: () => void;
+  watcher?: (notRetriable?: string[], retriable?: string[]) => void;
   currentExecutionVariable?: string;
   logProcessesProgress?: boolean;
   logStartCycle?: (maxThreads: number | string, attemptsCount: number | string, inTimeCommands: string[]) => void;

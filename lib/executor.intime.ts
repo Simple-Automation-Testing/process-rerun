@@ -94,7 +94,7 @@ async function intimeExecutor(runOptions, commandsArray): Promise<{ retriable: s
       logProcessesProgress &&
       setInterval(() => logMiddleResultsCycle(initialCommandsCount, commands, inProgressCommands), 5000);
 
-    const watcherRunner = watcher && setInterval(watcher, 5000);
+    const watcherRunner = watcher && setInterval(() => watcher(Array.from(notRetriable), Array.from(retriable)), 5000);
 
     do {
       if (commands.length) {
