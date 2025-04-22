@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2020",
+    "module": "NodeNext",
+    "target": "ESNext",
     "sourceMap": true,
-    "outDir": "built/cjs",
+    "outDir": "built/esm",
     "declaration": true,
     "experimentalDecorators": true,
     "allowJs": true

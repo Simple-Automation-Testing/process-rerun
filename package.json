@@ -1,16 +1,24 @@
 {
   "name": "process-rerun",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/potapovDim/protractor-rerun.git"
   },
-  "main": "./built/index.js",
+  "main": "./built/cjs/index.js",
+  "exports": {
+    ".": {
+      "require": "./built/cjs/index.js",
+      "import": "./built/esm/index.js"
+    }
+  },
   "scripts": {
     "tscw": "tsc -w",
     "validate": "npm ls",
     "test": "mocha $(find specs -name '*.spec.*') --timeout 500000 --require ts-node/register",
-    "tsc": "rm -rf ./built && tsc",
+    "tsc:cjs": "tsc -p tsconfig.json",
+    "tsc:esm": "tsc -p tsconfig.esm.json",
+    "tsc": "rm -rf ./built && npm run tsc:cjs && npm run tsc:esm",
     "lint": "eslint --ext .ts ./ --fix"
   },
   "author": {
@@ -32,7 +40,7 @@
   ],
   "devDependencies": {
     "@types/mocha": "^9.1.1",
-    "@types/node": "^14.17.1",
+    "@types/node": "^22.14.1",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "@typescript-eslint/parser": "^5.21.0",
     "assertior": "0.0.11",
@@ -45,12 +53,12 @@
     "eslint-plugin-sonarjs": "^0.13.0",
     "eslint-plugin-unicorn": "^42.0.0",
     "mocha": "^10.0.0",
-    "ts-node": "^5.0.1",
+    "ts-node": "^10.9.1",
     "tslint": "^5.9.1",
-    "typescript": "^4.3.2"
+    "typescript": "^5.0.4"
   },
   "engines": {
-    "node": ">=10.22.0"
+    "node": ">=19.22.0"
   },
   "dependencies": {
     "sat-utils": "0.0.49"

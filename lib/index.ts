@@ -2,7 +2,8 @@ import { logger } from 'sat-utils';
 import { getPollTime } from './helpers';
 import { circleExecutor } from './executor.circle';
 import { intimeExecutor } from './executor.intime';
-import type { ExecOptions } from 'child_process';
+
+import type { TBuildOpts } from './lib.types';
 
 function reRunnerBuilder(runOptions) {
   const { logLevel = 'ERROR', intime = false, ...executorOptions } = runOptions;
@@ -11,28 +12,6 @@ function reRunnerBuilder(runOptions) {
 
   return intime ? intimeExecutor.bind(this, executorOptions) : circleExecutor.bind(this, executorOptions);
 }
-
-export type TBuildOpts = {
-  logLevel?: 'ERROR' | 'WARN' | 'INFO' | 'VERBOSE' | 'MUTE';
-  maxThreads?: number;
-  attemptsCount?: number;
-  longestProcessTime?: number;
-  successExitCode?: number;
-  pollTime?: number;
-  execOpts?: ExecOptions;
-  processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | boolean;
-  everyCycleCallback?: () => void;
-  watcher?: (notRetriable?: string[], retriable?: string[]) => void;
-  currentExecutionVariable?: string;
-  logProcessesProgress?: boolean;
-  logStartCycle?: (maxThreads: number | string, attemptsCount: number | string, inTimeCommands: string[]) => void;
-  logEndCycle?: (retriable: string[], notRetriable: string[], startTime: number) => void;
-  logIteractionCycle?: (cycleNumber: number, commands: string[]) => void;
-  logMiddleResultsCycle?: (initialCount: number, commands: string[], commandsInProgressArr: string[]) => void;
-  logProcessResult?: (cmd: string, startTime: number, execProc, error, stdout, stderr) => void;
-  onExitCloseProcess?: (execProc, code: null, signal: string | number) => void;
-  onErrorProcess?: (execProc, error) => void;
-};
 
 export type TRunner = {
   (commands: string[] | Array<(index: number) => any>): Promise<{ notRetriable: string[]; retriable: string[] }>;
@@ -58,6 +37,5 @@ const getReruner = ({
   return reRunnerBuilder(reformattedArgs);
 };
 
+export type { TBuildOpts } from './lib.types';
 export { getReruner };
-
-export { getFilesList } from './helpers';

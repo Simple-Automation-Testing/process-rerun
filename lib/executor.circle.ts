@@ -91,11 +91,18 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
 
     const asserter = setInterval(() => runCommand(commands, retriable, executionCount), pollTime);
 
-    const logProcessesProgressLogger =
-      logProcessesProgress &&
-      setInterval(() => logMiddleResultsCycle(initialCommandsCount, commands, inProgressCommands), 5000);
-
-    const watcherRunner = watcher && setInterval(() => watcher(Array.from(notRetriable), Array.from(retriable)), 5000);
+    const watcherRunner =
+      watcher &&
+      setInterval(
+        () =>
+          watcher({
+            notRetriable: Array.from(notRetriable),
+            retriable: Array.from(retriable),
+            inProgressCommands: Array.from(inProgressCommands),
+            initialCommandsCount,
+          }),
+        5000,
+      );
 
     do {
       if (commands.length) {
@@ -112,10 +119,6 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
       } catch (error) {
         logger.error(error);
       }
-    }
-
-    if (logProcessesProgressLogger) {
-      clearInterval(logProcessesProgressLogger);
     }
 
     if (watcherRunner) {
