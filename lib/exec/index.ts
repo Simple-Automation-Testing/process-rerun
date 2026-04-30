@@ -1,5 +1,5 @@
 import { isString, getType, isObject, isFunction } from 'sat-utils';
-import { exec } from 'child_process';
+import { spawn } from 'node:child_process';
 import { ProcessRerunError } from '../error';
 
 function execute(cmd: string, logProcessResult, executionHolder: { stackTrace: string }, execOpts = {}) {
@@ -20,11 +20,33 @@ function execute(cmd: string, logProcessResult, executionHolder: { stackTrace: s
   }
 
   const startTime = +Date.now();
+  let stdout = '';
+  let stderr = '';
+  let settled = false;
 
-  const execProc = exec(cmd, execOpts, (error, stdout, stderr) => {
+  const execProc = spawn(cmd, { ...execOpts, shell: true });
+
+  execProc.stdout?.on('data', chunk => {
+    stdout += chunk.toString();
+  });
+  execProc.stderr?.on('data', chunk => {
+    stderr += chunk.toString();
+  });
+
+  const finalize = (error: Error | null) => {
+    if (settled) return;
+    settled = true;
     logProcessResult(cmd, startTime, execProc, error, stdout, stderr);
-
     executionHolder.stackTrace += `${stdout}${stderr}`;
+  };
+
+  execProc.on('error', finalize);
+  execProc.on('close', (code, signal) => {
+    const error =
+      code !== 0 && code !== null
+        ? Object.assign(new Error(`Command failed: ${cmd}`), { code, signal })
+        : null;
+    finalize(error);
   });
 
   return execProc;

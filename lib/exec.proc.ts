@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes, isString, isBoolean, sleep } from 'sat-utils';
+import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes, isString, isBoolean } from 'sat-utils';
 import { internalLogProcessResult } from './logger.execution';
 import { execute } from './exec';
 import { logger } from './logger';
@@ -24,7 +24,7 @@ function buildExecRunner(notRetriable, runOpts) {
 
   return (cmd, index) =>
     new Promise(resolve => {
-      const onErrorCloseHandler = null;
+      const onErrorCloseHandler: any = null;
 
       const executionHolder = { stackTrace: '' };
       /**
@@ -48,7 +48,9 @@ function buildExecRunner(notRetriable, runOpts) {
             logger.error(`Process just marked manually as killed but it is possible that it is still running`);
           } else {
             logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}\n${cmd}}`);
-            process.kill(procWhatShouldBeKilled.pid);
+            if (procWhatShouldBeKilled.pid) {
+              process.kill(procWhatShouldBeKilled.pid);
+            }
           }
         }
       };

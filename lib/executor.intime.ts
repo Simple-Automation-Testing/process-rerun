@@ -10,8 +10,8 @@ async function intimeExecutor(
   runOptions: TBuildOpts,
   commandsArray,
 ): Promise<{ retriable: string[]; notRetriable: string[] }> {
-  const notRetriable = [];
-  const retriable = [];
+  const notRetriable: string[] = [];
+  const retriable: string[] = [];
 
   let currentSessionCount = 0;
 
@@ -44,11 +44,11 @@ async function intimeExecutor(
     cmd,
   }));
 
-  const inProgressCommands = [];
-  logStartCycle(maxThreads, attemptsCount, inTimeCommands);
+  const inProgressCommands: string[] = [];
+  logStartCycle(maxThreads!, attemptsCount!, inTimeCommands);
 
   async function runCommand(commands) {
-    if (maxThreads > currentSessionCount && commands.length) {
+    if (maxThreads! > currentSessionCount && commands.length) {
       currentSessionCount += 1;
 
       let result;
@@ -57,13 +57,13 @@ async function intimeExecutor(
       const executionIndex = commadData.attemptsCount--;
       if (isString(commadData.cmd)) {
         const index = inProgressCommands.push(commadData.cmd) - 1;
-        result = await executeCommandAsync(commadData.cmd, attemptsCount - executionIndex).catch(error =>
+        result = await executeCommandAsync(commadData.cmd, attemptsCount! - executionIndex).catch(error =>
           logger.error(error),
         );
         inProgressCommands.splice(index, 1);
       } else if (isFunction(commadData.cmd) || isAsyncFunction(commadData.cmd)) {
         const index = inProgressCommands.push(commadData.cmd.toString()) - 1;
-        result = await commadData.cmd(attemptsCount - executionIndex).catch(error => logger.error(error));
+        result = await commadData.cmd(attemptsCount! - executionIndex).catch(error => logger.error(error));
         inProgressCommands.splice(index, 1);
       }
 
@@ -103,7 +103,7 @@ async function intimeExecutor(
         await runCommand(commands);
       }
       if (currentSessionCount) {
-        await sleep(pollTime);
+        await sleep(pollTime!);
       }
     } while (
       (commands as Array<{ attemptsCount: number }>).some(({ attemptsCount }) => attemptsCount) ||

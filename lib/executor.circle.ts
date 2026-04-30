@@ -11,7 +11,7 @@ import {
 } from './logger.execution';
 
 async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: string[]; notRetriable: string[] }> {
-  const notRetriable = [];
+  const notRetriable: string[] = [];
 
   let currentSessionCount = 0;
 
@@ -43,7 +43,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
    * commandsArray = toArray(commandsArray);
    */
   commandsArray = toArray(commandsArray);
-  const inProgressCommands = [];
+  const inProgressCommands: string[] = [];
 
   logStartCycle(maxThreads, attemptsCount, commandsArray);
 
@@ -130,7 +130,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
   }
   let resolvedCommandsArray = toArray(commandsArray);
 
-  const retriable = [];
+  const retriable: string[] = [];
   const startTime = Date.now();
 
   for (let index = 0; index < attemptsCount; index++) {

@@ -4,9 +4,12 @@
     "target": "es2020",
     "sourceMap": true,
     "outDir": "built/cjs",
+    "rootDir": "./lib",
     "declaration": true,
     "experimentalDecorators": true,
-    "allowJs": true
+    "allowJs": true,
+    "noImplicitAny": false,
+    "types": ["node", "mocha"]
   },
   "exclude": [
     "node_modules",

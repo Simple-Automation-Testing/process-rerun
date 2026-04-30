@@ -1,10 +1,10 @@
 import { expect } from 'assertior';
 import { intimeExecutor } from '../lib/executor.intime';
 
-const processResultAnalyzer = cmd => cmd;
+const processResultAnalyzer = (cmd: string) => cmd;
 
 describe('', () => {
-  it('[p] intimeExecutor longestProcessTime kill procs', async function () {
+  it('[p] intimeExecutor longestProcessTime kill procs', async () => {
     const commands = [`node -e 'setTimeout(() => console.log("Success first"), 5000)'`];
     const result = await intimeExecutor(
       {
@@ -19,7 +19,7 @@ describe('', () => {
     expect(result.retriable).toDeepEqual(commands);
   });
 
-  it('[p] intimeExecutor longestProcessTime ', async function () {
+  it('[p] intimeExecutor longestProcessTime ', async () => {
     const commands = [`node -e 'setTimeout(() => console.log("Success first"), 5000)'`];
     const result = await intimeExecutor(
       {
@@ -36,7 +36,7 @@ describe('', () => {
     expect(result.retriable.length).toEqual(0);
   });
 
-  it('[p] intimeExecutor longestProcessTime  kill processResultAnalyzer return null notRetriable auto push', async function () {
+  it('[p] intimeExecutor longestProcessTime  kill processResultAnalyzer return null notRetriable auto push', async () => {
     const commands = [
       `node -e 'setTimeout(() => console.log("Success first"), 5000)'`,
       `node -e 'setTimeout(() => console.log("Success second"), 5000)'`,
@@ -57,7 +57,7 @@ describe('', () => {
     expect(result.retriable.length).toEqual(0);
   });
 
-  it('[p] intimeExecutor longestProcessTime  kill processResultAnalyzer return cmd notRetriable auto push', async function () {
+  it('[p] intimeExecutor longestProcessTime  kill processResultAnalyzer return cmd notRetriable auto push', async () => {
     const commands = [`node -e 'setTimeout(() => console.log("Success first"), 5000)'`];
     const result = await intimeExecutor(
       {
@@ -73,14 +73,14 @@ describe('', () => {
     expect(result.retriable).toDeepEqual(commands);
   });
 
-  it('[p] intimeExecutor processResultAnalyzer arguments', async function () {
+  it('[p] intimeExecutor processResultAnalyzer arguments', async () => {
     const commands = [
       `node -e 'setTimeout(() => {console.log("Success first"); throw new Error("This is test error")}, 1000)'`,
     ];
-    let cmdTest = null;
-    let stackTraceTest = null;
-    let notRetriableTest = null;
-    const processResultAnalyzer = (cmd, stackTrace, notRetriable) => {
+    let cmdTest: string | null = null;
+    let stackTraceTest: string | null = null;
+    let notRetriableTest: string[] | null = null;
+    const processResultAnalyzer = (cmd: string, stackTrace: string, notRetriable: string[]) => {
       cmdTest = cmd;
       stackTraceTest = stackTrace;
       notRetriableTest = [...notRetriable];
@@ -103,7 +103,7 @@ describe('', () => {
     expect(stackTraceTest).stringIncludesSubstring('This is test error');
   });
 
-  it('[p] intimeExecutor successExitCode', async function () {
+  it('[p] intimeExecutor successExitCode', async () => {
     const commands = [`node -e 'setTimeout(() => {console.log("Success first"); process.exit(100)}, 1000)'`];
 
     const result = await intimeExecutor(

@@ -1,15 +1,15 @@
 import { expect } from 'assertior';
+import { ProcessRerunError } from '../lib/error';
 import { execute } from '../lib/exec';
 import { sleep } from '../lib/helpers';
-import { ProcessRerunError } from '../lib/error';
 
 function wrap(...args) {
-  // @ts-ignore
+  // @ts-expect-error
   return execute(...args);
 }
 
 describe('exec intex', () => {
-  it('[P] exec', async function () {
+  it('[P] exec', async () => {
     const holder = { stackTrace: '' };
 
     async function waiter() {
@@ -25,7 +25,7 @@ describe('exec intex', () => {
     expect(holder.stackTrace).stringIncludesSubstring('Hello');
   });
 
-  it('[N] exec', async function () {
+  it('[N] exec', async () => {
     const holder = { stackTrace: '' };
     try {
       wrap({}, holder);

@@ -1,4 +1,4 @@
-import { logger } from 'sat-utils';
+import { logger } from './logger';
 import { getPollTime } from './helpers';
 import { circleExecutor } from './executor.circle';
 import { intimeExecutor } from './executor.intime';
@@ -10,7 +10,9 @@ function reRunnerBuilder(runOptions) {
 
   logger.setLogLevel(logLevel);
 
-  return intime ? intimeExecutor.bind(this, executorOptions) : circleExecutor.bind(this, executorOptions);
+  return intime
+    ? intimeExecutor.bind(null, executorOptions)
+    : circleExecutor.bind(null, executorOptions);
 }
 
 export type TRunner = {

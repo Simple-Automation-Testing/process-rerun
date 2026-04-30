@@ -8,7 +8,7 @@ export type TBuildOpts = {
   successExitCode?: number;
   pollTime?: number;
   execOpts?: ExecOptions;
-  processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | boolean;
+  processResultAnalyzer?: (originalCommand: string, stack: string, notRetriable: any[]) => string | boolean | null;
   everyCycleCallback?: () => void;
   watcher?: (data: {
     notRetriable?: string[];

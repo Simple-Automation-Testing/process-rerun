@@ -1,9 +1,9 @@
-import { sleep } from 'sat-utils';
 import { expect } from 'assertior';
 import { getReruner } from '../lib';
+import { sleep } from '../lib/helpers';
 
 describe('index ', () => {
-  it('[p] longestProcessTime kill procs', async function () {
+  it('[p] longestProcessTime kill procs', async () => {
     const commands = [`node -e 'setTimeout(() => console.log("Success first"), 5000)'`];
     const runner = getReruner({
       maxThreads: 4,
@@ -17,7 +17,7 @@ describe('index ', () => {
     expect(result.retriable).toDeepEqual(commands);
   });
 
-  it('[p] longestProcessTime ', async function () {
+  it('[p] longestProcessTime ', async () => {
     const commands = [`node -e 'setTimeout(() => console.log("Success first"), 5000)'`];
     const runner = getReruner({
       maxThreads: 4,
@@ -33,7 +33,7 @@ describe('index ', () => {
     expect(result.retriable.length).toEqual(0);
   });
 
-  it('[p] longestProcessTime  kill processResultAnalyzer return null notRetriable auto push', async function () {
+  it('[p] longestProcessTime  kill processResultAnalyzer return null notRetriable auto push', async () => {
     const commands = [
       `node -e 'setTimeout(() => console.log("Success first"), 5000)'`,
       `node -e 'setTimeout(() => console.log("Success second"), 5000)'`,
@@ -53,7 +53,7 @@ describe('index ', () => {
     expect(result.retriable.length).toEqual(0);
   });
 
-  it('[p] longestProcessTime  kill processResultAnalyzer return cmd notRetriable auto push', async function () {
+  it('[p] longestProcessTime  kill processResultAnalyzer return cmd notRetriable auto push', async () => {
     const commands = [`node -e 'setTimeout(() => console.log("Success first"), 5000)'`];
     const runner = getReruner({
       maxThreads: 4,
@@ -68,7 +68,7 @@ describe('index ', () => {
     expect(result.retriable).toDeepEqual(commands);
   });
 
-  it('[p] processResultAnalyzer arguments', async function () {
+  it('[p] processResultAnalyzer arguments', async () => {
     const commands = [
       `node -e 'setTimeout(() => {console.log("Success first"); throw new Error("This is test error")}, 1000)'`,
     ];
@@ -97,7 +97,7 @@ describe('index ', () => {
     expect(stackTraceTest).stringIncludesSubstring('This is test error');
   });
 
-  it('[p] successExitCode', async function () {
+  it('[p] successExitCode', async () => {
     const commands = [`node -e 'setTimeout(() => {console.log("Success first"); process.exit(100)}, 1000)'`];
     const processResultAnalyzer = cmd => cmd;
     const runner = getReruner({
@@ -114,7 +114,7 @@ describe('index ', () => {
     expect(result.retriable).toDeepEqual([]);
   });
 
-  it('[p] successExitCode', async function () {
+  it('[p] successExitCode', async () => {
     const commands = [
       async () => {
         await sleep(500);
@@ -138,7 +138,7 @@ describe('index ', () => {
     expect(result.retriable).toDeepEqual([]);
   });
 
-  it('[p] successExitCode', async function () {
+  it('[p] successExitCode', async () => {
     const commands = [
       async function test() {
         await sleep(500);
