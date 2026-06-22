@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { toArray, isFunction, isAsyncFunction, shuffleArrMutable, isString } from 'sat-utils';
+import { toArray, isFunction, isAsyncFunction, shuffleArrMutable, isString, isNumber } from 'sat-utils';
 import { buildCommandExecutor } from './command.executor.builder';
 import { sleep } from './helpers';
 import { logger } from './logger';
@@ -21,6 +21,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     pollTime,
     everyCycleCallback,
     longestProcessTime,
+    killGraceTime,
     successExitCode,
     currentExecutionVariable,
     maxThreads,
@@ -50,6 +51,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
   const executeCommandAsync = buildCommandExecutor(notRetriable, {
     currentExecutionVariable,
     longestProcessTime,
+    killGraceTime,
     processResultAnalyzer,
     pollTime,
     successExitCode,
@@ -104,6 +106,13 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
         5000,
       );
 
+    const progressLogger =
+      logProcessesProgress &&
+      setInterval(
+        () => logMiddleResultsCycle(initialCommandsCount, Array.from(inProgressCommands)),
+        isNumber(logProcessesProgress) ? logProcessesProgress : 5000,
+      );
+
     do {
       if (commands.length) {
         await runCommand(commands, retriable, executionCount);
@@ -123,6 +132,10 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
 
     if (watcherRunner) {
       clearInterval(watcherRunner);
+    }
+
+    if (progressLogger) {
+      clearInterval(progressLogger);
     }
 
     clearInterval(asserter);

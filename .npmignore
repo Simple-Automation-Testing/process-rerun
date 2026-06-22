@@ -8,3 +8,4 @@ readme.md
 .eslint*
 docs
 .github
+.claude

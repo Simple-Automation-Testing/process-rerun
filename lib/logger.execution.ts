@@ -29,6 +29,9 @@ function internalLogMiddleResultsCycle(initialCount: number, commands: string[])
   logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
   logger.info(`initial processes quantity ${initialCount}`);
   logger.info(`in progress ${commands.length}`);
+  commands.forEach((cmd, index) => {
+    logger.info(`  ${index + 1}) ${cmd}`);
+  });
   logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
 }
 

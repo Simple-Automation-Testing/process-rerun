@@ -20,6 +20,7 @@ async function intimeExecutor(
     processResultAnalyzer,
     pollTime,
     longestProcessTime,
+    killGraceTime,
     successExitCode,
     currentExecutionVariable,
     maxThreads,
@@ -33,6 +34,7 @@ async function intimeExecutor(
   const executeCommandAsync = buildCommandExecutor(notRetriable, {
     currentExecutionVariable,
     longestProcessTime,
+    killGraceTime,
     processResultAnalyzer,
     pollTime,
     successExitCode,

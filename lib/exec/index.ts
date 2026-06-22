@@ -24,7 +24,7 @@ function execute(cmd: string, logProcessResult, executionHolder: { stackTrace: s
   let stderr = '';
   let settled = false;
 
-  const execProc = spawn(cmd, { ...execOpts, shell: true });
+  const execProc = spawn(cmd, { ...execOpts, shell: true, detached: process.platform !== 'win32' });
 
   execProc.stdout?.on('data', chunk => {
     stdout += chunk.toString();

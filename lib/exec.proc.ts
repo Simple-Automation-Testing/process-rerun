@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
+/** biome-ignore-all lint/suspicious/noConsole: <explanation> */
 import { isFunction, isAsyncFunction, isNumber, millisecondsToMinutes, isString, isBoolean } from 'sat-utils';
 import { internalLogProcessResult } from './logger.execution';
 import { execute } from './exec';
@@ -12,6 +13,7 @@ function buildExecRunner(notRetriable, runOpts) {
     processResultAnalyzer,
     execOpts = { maxBuffer: 1000 * 1024 },
     pollTime,
+    killGraceTime = 5000,
     successExitCode = 0,
     logProcessResult = internalLogProcessResult,
     onExitCloseProcess,
@@ -32,6 +34,16 @@ function buildExecRunner(notRetriable, runOpts) {
        */
       const startTime = +Date.now();
 
+      /**
+       * kill escalation state:
+       * 0 - nothing sent yet
+       * 1 - SIGTERM sent (waiting for graceful exit)
+       * 2 - SIGKILL sent (waiting for forced exit)
+       * 3 - gave up, marked manually as killed (process may still be alive / unkillable)
+       */
+      let killStage = 0;
+      let lastSignalAt = 0;
+
       if (currentExecutionVariable) {
         cmd = cmd.includes(currentExecutionVariable)
           ? cmd.replace(new RegExp(`${currentExecutionVariable}=\\d+`, 'ig'), `${currentExecutionVariable}=${index}`)
@@ -39,19 +51,64 @@ function buildExecRunner(notRetriable, runOpts) {
       }
       const execProc = execute(cmd, logProcessResult, executionHolder, execOpts);
 
-      const killTooLongExecution = (procWhatShouldBeKilled: typeof execProc) => {
-        const executionTime = +Date.now() - startTime;
-        if (executionTime > longestProcessTime) {
-          if (executionTime - longestProcessTime > 7500) {
-            procWhatShouldBeKilled.emit('exit', 100, 'PRO_RERUN_KILL');
-            procWhatShouldBeKilled.emit('close', 100, 'PRO_RERUN_KILL');
-            logger.error(`Process just marked manually as killed but it is possible that it is still running`);
+      /**
+       * Send a signal to the whole detached process group (negative pid) so that
+       * children spawned by the shell are reached too. Falls back to the direct
+       * process handle on win32 or when the group is gone.
+       */
+      const signalProcess = (procWhatShouldBeKilled: typeof execProc, signal: NodeJS.Signals) => {
+        try {
+          if (process.platform !== 'win32' && procWhatShouldBeKilled.pid) {
+            process.kill(-procWhatShouldBeKilled.pid, signal);
           } else {
-            logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}\n${cmd}}`);
-            if (procWhatShouldBeKilled.pid) {
-              process.kill(procWhatShouldBeKilled.pid);
-            }
+            procWhatShouldBeKilled.kill(signal);
           }
+        } catch (e) {
+          // ESRCH - process group already exited between the alive-check and the kill call
+          if ((e as NodeJS.ErrnoException).code !== 'ESRCH') {
+            console.error(e);
+          }
+        }
+      };
+
+      const killTooLongExecution = (procWhatShouldBeKilled: typeof execProc) => {
+        // process already exited - nothing to do
+        if (procWhatShouldBeKilled.exitCode !== null || procWhatShouldBeKilled.signalCode !== null) {
+          return;
+        }
+        const executionTime = +Date.now() - startTime;
+        if (executionTime <= longestProcessTime) {
+          return;
+        }
+
+        const now = +Date.now();
+
+        // stage 0 -> 1: first timeout breach, ask politely with SIGTERM
+        if (killStage === 0) {
+          logger.info(`Process killed due to long time execution: ${millisecondsToMinutes(executionTime)}\n${cmd}`);
+          signalProcess(procWhatShouldBeKilled, 'SIGTERM');
+          killStage = 1;
+          lastSignalAt = now;
+          return;
+        }
+
+        // stage 1 -> 2: SIGTERM ignored for the grace period, force with SIGKILL
+        if (killStage === 1 && now - lastSignalAt > killGraceTime) {
+          logger.warn(`Process did not exit on SIGTERM, sending SIGKILL\n${cmd}`);
+          signalProcess(procWhatShouldBeKilled, 'SIGKILL');
+          killStage = 2;
+          lastSignalAt = now;
+          return;
+        }
+
+        // stage 2 -> 3: even SIGKILL did not reap it (uninterruptible sleep / re-parented
+        // session that escaped the group). Give up and mark as killed so the runner can
+        // proceed - the OS process may still be alive and now orphaned.
+        if (killStage === 2 && now - lastSignalAt > killGraceTime) {
+          procWhatShouldBeKilled.emit('exit', 100, 'PRO_RERUN_KILL');
+          procWhatShouldBeKilled.emit('close', 100, 'PRO_RERUN_KILL');
+          killStage = 3;
+          logger.error(`Process survived SIGKILL and was marked manually as killed - it may still be running`);
         }
       };
 
