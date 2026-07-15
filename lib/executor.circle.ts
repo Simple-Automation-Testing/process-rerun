@@ -39,6 +39,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     onExitCloseProcess,
     onErrorProcess,
     execOpts,
+    sharedCacheVia,
   } = runOptions;
 
   /**
@@ -78,7 +79,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
       const commandToExecute = commands.splice(0, 1)[0];
       if (isString(commandToExecute)) {
         // resolve --use-shared-cache against the shared cache (consumes the requested entities)
-        const cmdToExecute = applySharedCache(cache, commandToExecute);
+        const cmdToExecute = applySharedCache(cache, commandToExecute, sharedCacheVia);
         const index = inProgressCommands.push(cmdToExecute) - 1;
         result = await executeCommandAsync(cmdToExecute, runIndex).catch(error => logger.error(error));
         inProgressCommands.splice(index, 1);

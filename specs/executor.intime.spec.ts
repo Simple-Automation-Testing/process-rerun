@@ -133,6 +133,34 @@ describe('', () => {
     expect(captured).stringNotIncludesSubstring('--use-shared-cache');
   });
 
+  it('[p] intimeExecutor delivers the shared cache via env var when sharedCacheVia is "env"', async () => {
+    const producer = `node -e 'console.log("shared-cache: " + JSON.stringify(JSON.stringify({scope:"env-scope",data:{token:"abc"}})))'`;
+    // consumer reads the cache from the environment, not from argv
+    const consumer = `node -e 'const c = JSON.parse(process.env.PROCESS_RERUN_CACHE || "{}"); console.log("ENV:" + (c["env-scope"] || []).map(e => e.token).join(",")); process.exit(1)' --use-shared-cache={"env-scope":1}`;
+
+    let captured = '';
+    await intimeExecutor(
+      {
+        maxThreads: 1,
+        attemptsCount: 1,
+        longestProcessTime: 20_000,
+        pollTime: 10,
+        sharedCacheVia: 'env',
+        processResultAnalyzer: (_cmd: string, stackTrace: string) => {
+          captured += stackTrace;
+          return true;
+        },
+      },
+      [producer, consumer],
+    );
+
+    // the child read the entity from process.env.PROCESS_RERUN_CACHE
+    expect(captured).stringIncludesSubstring('ENV:abc');
+    // no --cache argument was used in env mode, and the request flag never leaked
+    expect(captured).stringNotIncludesSubstring('--cache=');
+    expect(captured).stringNotIncludesSubstring('--use-shared-cache');
+  });
+
   it('[p] intimeExecutor collects several shared-cache lines from one process', async () => {
     // a single producer publishes three entities into the same scope on separate lines
     const producer = `node -e 'for (const n of [1,2,3]) console.log("shared-cache: " + JSON.stringify(JSON.stringify({scope:"multi",data:{n}})))'`;

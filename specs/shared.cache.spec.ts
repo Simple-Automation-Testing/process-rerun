@@ -151,4 +151,19 @@ describe('shared cache - applySharedCache (command rewrite)', () => {
     // the inner single quote is POSIX-escaped ('\'') so the shell hands the child valid json
     expect(cmd).toEqual(`node run.js --cache='{"names":[{"name":"O'\\''Brien"}]}'`);
   });
+
+  it('delivers entities through a prepended env assignment when via is "env"', () => {
+    const cache: TSharedCache = { auth: [{ token: 'a' }] };
+    const cmd = applySharedCache(cache, 'node run.js --use-shared-cache={"auth":1}', 'env');
+
+    // the request flag is removed and the json is exposed via PROCESS_RERUN_CACHE
+    expect(cmd).toEqual(`PROCESS_RERUN_CACHE='{"auth":[{"token":"a"}]}' node run.js`);
+  });
+
+  it('strips the argument (no env assignment) when nothing is gathered in env mode', () => {
+    const cache: TSharedCache = {};
+    const cmd = applySharedCache(cache, 'node run.js --use-shared-cache={"auth":1} --flag', 'env');
+
+    expect(cmd).toEqual('node run.js --flag');
+  });
 });

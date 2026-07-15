@@ -154,6 +154,35 @@ console.log('using token', token); // -> using token { token: 'abc123', userId: 
 The value is shell-escaped before delivery, so the JSON stays intact and `JSON.parse`-able
 inside the child even when the data contains characters such as single quotes.
 
+### Delivery: argument or environment variable
+
+By default the resolved entities are delivered as the `--cache` **argument** shown above.
+Set the `sharedCacheVia` build option to `'env'` to deliver them through an **environment
+variable** instead. In that mode the `--use-shared-cache` request argument is removed and a
+`PROCESS_RERUN_CACHE='<json>'` assignment is prepended to the command:
+
+```js
+const runner = buildRunner({ sharedCacheVia: 'env' }); // default is 'arg'
+
+// my-runner --use-shared-cache={"auth":1}
+// becomes
+// PROCESS_RERUN_CACHE='{"auth":[{"token":"abc123","userId":7}]}' my-runner
+```
+
+The child then reads the same json from its environment:
+
+```js
+// consumer.js (env mode)
+const cache = JSON.parse(process.env.PROCESS_RERUN_CACHE || '{}');
+
+const [token] = cache.auth || [];
+console.log('using token', token);
+```
+
+`sharedCacheVia` applies to every command in the run. Either way the payload is identical —
+only the channel (argv vs environment) differs — and when nothing is gathered the request
+argument is stripped with no `--cache` argument and no env assignment added.
+
 ### End-to-end example
 
 ```js

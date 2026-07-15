@@ -18,6 +18,12 @@ export type TBuildOpts = {
     initialCommandsCount?: number;
   }) => void;
   currentExecutionVariable?: string;
+  /**
+   * How resolved shared-cache entities are delivered to a consuming command:
+   * 'arg' rewrites --use-shared-cache into a --cache='<json>' argument (default),
+   * 'env' removes the argument and prepends a PROCESS_RERUN_CACHE='<json>' env assignment.
+   */
+  sharedCacheVia?: 'arg' | 'env';
   logStartCycle?: (maxThreads: number | string, attemptsCount: number | string, inTimeCommands: string[]) => void;
   logEndCycle?: (retriable: string[], notRetriable: string[], startTime: number) => void;
   logIteractionCycle?: (cycleNumber: number, commands: string[]) => void;

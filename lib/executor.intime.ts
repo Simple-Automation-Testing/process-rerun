@@ -32,6 +32,7 @@ async function intimeExecutor(
     logEndCycle = internalLogEndCycle,
     logIntimeCommand = internalLogIntimeCommand,
     execOpts,
+    sharedCacheVia,
   } = runOptions;
 
   const executeCommandAsync = buildCommandExecutor(notRetriable, {
@@ -63,7 +64,7 @@ async function intimeExecutor(
       const executionIndex = commadData.attemptsCount--;
       if (isString(commadData.cmd)) {
         // resolve --use-shared-cache against the shared cache (consumes the requested entities)
-        const cmdToExecute = applySharedCache(cache, commadData.cmd);
+        const cmdToExecute = applySharedCache(cache, commadData.cmd, sharedCacheVia);
 
         const index = inProgressCommands.push(cmdToExecute) - 1;
         result = await executeCommandAsync(cmdToExecute, attemptsCount! - executionIndex).catch(error =>

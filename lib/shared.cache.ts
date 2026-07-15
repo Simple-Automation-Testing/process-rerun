@@ -2,8 +2,14 @@ import { isString, isNumber } from 'sat-utils';
 import { logger } from './logger';
 
 type TSharedCache = { [scope: string]: unknown[] };
+type TSharedCacheVia = 'arg' | 'env';
 
 const USE_SHARED_CACHE_ARG = /--use-shared-cache=(?:"([^"]*)"|'([^']*)'|(\S+))/;
+// same match but eats a leading space so removing the argument leaves no double space
+const USE_SHARED_CACHE_ARG_STRIP = /\s*--use-shared-cache=(?:"([^"]*)"|'([^']*)'|(\S+))/;
+
+// name of the environment variable used when entities are delivered via `env`
+const SHARED_CACHE_ENV_VAR = 'PROCESS_RERUN_CACHE';
 
 /**
  * Stores an entity published by a command on its stdout (see `getCache` in ./exec)
@@ -56,15 +62,8 @@ function collectSharedCache(cache: TSharedCache, cmd: string): TSharedCache | un
 }
 
 /**
- * Resolves the --use-shared-cache argument of a command against the shared cache:
- * - if entities were gathered, rewrites the argument into --cache='<json>' so the
- *   child process receives the actual entities via its argv;
- * - otherwise strips the --use-shared-cache argument so the child never sees it.
- * Commands without the argument are returned unchanged.
- */
-/**
  * Wraps a value in single quotes so the shell passes it to the child as a single,
- * untouched argument. Any single quote inside the value is escaped the POSIX way
+ * untouched token. Any single quote inside the value is escaped the POSIX way
  * (close quote, escaped quote, reopen) so the resulting json stays intact and
  * `JSON.parse`-able inside the process regardless of the entity contents.
  */
@@ -72,15 +71,34 @@ function shellSingleQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
-function applySharedCache(cache: TSharedCache, cmd: string): string {
+/**
+ * Resolves the --use-shared-cache argument of a command against the shared cache.
+ *
+ * When entities were gathered they are delivered to the child according to `via`:
+ * - `'arg'` (default): the argument is rewritten in place into --cache='<json>' so the
+ *   child reads the entities from its argv;
+ * - `'env'`: the argument is removed and a `PROCESS_RERUN_CACHE='<json>'` assignment is
+ *   prepended to the command so the child reads the entities from its environment.
+ *
+ * When nothing could be gathered the --use-shared-cache argument is stripped so the child
+ * never sees it. Commands without the argument are returned unchanged.
+ */
+function applySharedCache(cache: TSharedCache, cmd: string, via: TSharedCacheVia = 'arg'): string {
   const collected = collectSharedCache(cache, cmd);
 
-  if (collected && Object.values(collected).some(entities => entities.length)) {
-    return cmd.replace(USE_SHARED_CACHE_ARG, `--cache=${shellSingleQuote(JSON.stringify(collected))}`);
+  if (!collected || !Object.values(collected).some(entities => entities.length)) {
+    return cmd.replace(USE_SHARED_CACHE_ARG_STRIP, '');
   }
 
-  return cmd.replace(/\s*--use-shared-cache=(?:"([^"]*)"|'([^']*)'|(\S+))/, '');
+  const value = shellSingleQuote(JSON.stringify(collected));
+
+  if (via === 'env') {
+    const withoutRequest = cmd.replace(USE_SHARED_CACHE_ARG_STRIP, '');
+    return `${SHARED_CACHE_ENV_VAR}=${value} ${withoutRequest}`;
+  }
+
+  return cmd.replace(USE_SHARED_CACHE_ARG, `--cache=${value}`);
 }
 
-export { addToSharedCache, collectSharedCache, applySharedCache };
-export type { TSharedCache };
+export { addToSharedCache, collectSharedCache, applySharedCache, SHARED_CACHE_ENV_VAR };
+export type { TSharedCache, TSharedCacheVia };
