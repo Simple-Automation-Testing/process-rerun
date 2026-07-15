@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "ES2020",
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "target": "ESNext",
     "sourceMap": true,
     "outDir": "built/esm",
@@ -10,7 +10,6 @@
     "experimentalDecorators": true,
     "allowJs": true,
     "noImplicitAny": false,
-    "ignoreDeprecations": "6.0",
     "types": [
       "node",
       "mocha"

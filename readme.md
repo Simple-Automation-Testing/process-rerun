@@ -4,7 +4,7 @@ The purpose of this library is - build simple and flexible interface for paralle
 
 ![npm downloads](https://img.shields.io/npm/dm/process-rerun.svg?style=flat-square)
 
-[Documents](#documents)<br> [Usage](#usage)<br> [Changelog](#changelog)
+[Documents](#documents)<br> [Usage](#usage)<br> [Sharing data between processes](#sharing-data-between-processes-shared-cache)<br> [Changelog](#changelog)
 
 ## Documents
 
@@ -64,6 +64,123 @@ async function execCommands() {
   */
 }
 ```
+
+## Sharing data between processes (shared cache)
+
+Because every command runs as an isolated child process, they cannot talk to each
+other directly. `process-rerun` provides a lightweight, one-way channel that lets a
+command **publish** data and a later command **consume** it. The runner keeps an
+in-memory, per-run store (the *shared cache*) that sits between processes: producers
+write to it through their stdout, consumers read from it through a command-line argument.
+
+The whole exchange happens over plain text, so it works with any language or binary you
+execute — a producer only has to print one line, a consumer only has to read one argument.
+
+### Producing data — publish an entity from stdout
+
+To put something into the shared cache, a process prints a single line in this exact shape:
+
+```
+shared-cache: "<json string>"
+```
+
+The value between the double quotes is a **JSON string** (its inner quotes escaped) that
+decodes to an object with exactly two keys:
+
+| key | type | description |
+| --- | --- | --- |
+| **`scope`** | `string` | The bucket the entity belongs to. Consumers request entities by this name. |
+| **`data`** | `any` | The payload to share — any JSON-serializable value. |
+
+For example, a Node process publishing an auth token under the `auth` scope:
+
+```js
+// producer.js
+const entity = { scope: 'auth', data: { token: 'abc123', userId: 7 } };
+
+// JSON.stringify twice: once for the payload, once to wrap it as a quoted json string
+console.log('shared-cache: ' + JSON.stringify(JSON.stringify(entity)));
+// stdout -> shared-cache: "{\"scope\":\"auth\",\"data\":{\"token\":\"abc123\",\"userId\":7}}"
+```
+
+A process may print **as many `shared-cache:` lines as it wants** — the runner scans the
+full stdout, parses every one in the order they were printed, and **appends** each `data`
+to the list kept for its `scope`. Publishing several entities under the same scope (from a
+single process printing multiple lines, or across many processes) accumulates them:
+
+```
+cache = {
+  auth: [ { token: 'abc123', userId: 7 }, { token: 'def456', userId: 8 } ]
+}
+```
+
+### Consuming data — request entities via `--use-shared-cache`
+
+A later command asks for entities by adding a `--use-shared-cache` argument whose value is
+a JSON object of `{ "<scope>": <amount> }`, where `amount` is **how many entities to take**
+from that scope:
+
+```
+my-runner --use-shared-cache={"auth":1}
+```
+
+Right before the command is executed, the runner:
+
+1. Reads the request and **removes (consumes)** up to `amount` entities from each named
+   scope — taken entities are no longer available to other commands.
+2. If anything was gathered, it **rewrites** the argument into a `--cache` argument that
+   carries the actual entities, grouped by scope:
+
+   ```
+   my-runner --use-shared-cache={"auth":1}
+   # becomes
+   my-runner --cache='{"auth":[{"token":"abc123","userId":7}]}'
+   ```
+
+3. If nothing could be gathered (empty or unknown scope), the `--use-shared-cache`
+   argument is **stripped** so the child never sees it.
+
+The child process reads its entities from the resolved `--cache` argument and parses it:
+
+```js
+// consumer.js
+const raw = (process.argv.find(arg => arg.startsWith('--cache=')) || '').slice('--cache='.length);
+const cache = raw ? JSON.parse(raw) : {};
+
+const [token] = cache.auth || [];
+console.log('using token', token); // -> using token { token: 'abc123', userId: 7 }
+```
+
+The value is shell-escaped before delivery, so the JSON stays intact and `JSON.parse`-able
+inside the child even when the data contains characters such as single quotes.
+
+### End-to-end example
+
+```js
+const { buildRunner } = require('process-rerun');
+
+const runner = buildRunner({ maxThreads: 1 }); // single thread => the producer runs first
+
+runner([
+  // producer: publishes an entity into the "auth" scope
+  `node -e 'console.log("shared-cache: " + JSON.stringify(JSON.stringify({scope:"auth",data:{token:"abc123"}})))'`,
+
+  // consumer: requests one "auth" entity; receives it via a resolved --cache argument
+  `node -e 'const c = JSON.parse((process.argv.find(a => a.startsWith("--cache=")) || "").slice(8) || "{}"); console.log("got", c.auth)' -- --use-shared-cache={"auth":1}`,
+]);
+```
+
+### Notes and guarantees
+
+- **Ordering is your responsibility.** A consumer only sees what has already been published
+  by the time it starts. Make sure producers run before consumers — for example with
+  `maxThreads: 1`, or by scheduling producer and consumer commands in separate runs/cycles.
+- **Consumption is destructive.** Each requested entity is taken out of the cache. If a
+  command retries after consuming, the entities are already gone; the retry re-reads the
+  cache as it stands at that moment.
+- **The cache lives for the process that runs the executor** and is kept per execution mode
+  (intime / circle). It is in-memory only — nothing is persisted between separate runs.
+- **Shell-specific quoting.** The resolved `--cache` value is escaped for POSIX shells.
 
 ## intime approach vs circle approach
 

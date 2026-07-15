@@ -3,9 +3,9 @@ import { ProcessRerunError } from '../lib/error';
 import { execute } from '../lib/exec';
 import { sleep } from '../lib/helpers';
 
-function wrap(...args) {
+function wrap(arg) {
   // @ts-expect-error
-  return execute(...args);
+  return execute(arg);
 }
 
 describe('exec intex', () => {
@@ -18,7 +18,7 @@ describe('exec intex', () => {
       } while (!holder.stackTrace);
     }
 
-    wrap(`node -e 'console.log("Hello")'`, () => {}, holder);
+    execute({ cmd: `node -e 'console.log("Hello")'`, logProcessResult: () => {}, executionHolder: holder });
     //
     await waiter();
 
@@ -26,9 +26,8 @@ describe('exec intex', () => {
   });
 
   it('[N] exec', async () => {
-    const holder = { stackTrace: '' };
     try {
-      wrap({}, holder);
+      wrap({});
     } catch (error) {
       expect(error instanceof ProcessRerunError).toEqual(true);
     }

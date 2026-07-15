@@ -3,8 +3,11 @@ import { buildCommandExecutor } from './command.executor.builder';
 import { sleep } from './helpers';
 import { logger } from './logger';
 import { internalLogStartCycle, internalLogEndCycle, internalLogIntimeCommand } from './logger.execution';
+import { addToSharedCache, applySharedCache, type TSharedCache } from './shared.cache';
 
 import type { TBuildOpts } from './lib.types';
+
+const cache: TSharedCache = {};
 
 async function intimeExecutor(
   runOptions: TBuildOpts,
@@ -39,6 +42,7 @@ async function intimeExecutor(
     pollTime,
     successExitCode,
     execOpts,
+    onCache: (published: { scope: string; data: any }) => addToSharedCache(cache, published),
   });
 
   const inTimeCommands = commandsArray.map(cmd => ({
@@ -58,8 +62,11 @@ async function intimeExecutor(
 
       const executionIndex = commadData.attemptsCount--;
       if (isString(commadData.cmd)) {
-        const index = inProgressCommands.push(commadData.cmd) - 1;
-        result = await executeCommandAsync(commadData.cmd, attemptsCount! - executionIndex).catch(error =>
+        // resolve --use-shared-cache against the shared cache (consumes the requested entities)
+        const cmdToExecute = applySharedCache(cache, commadData.cmd);
+
+        const index = inProgressCommands.push(cmdToExecute) - 1;
+        result = await executeCommandAsync(cmdToExecute, attemptsCount! - executionIndex).catch(error =>
           logger.error(error),
         );
         inProgressCommands.splice(index, 1);

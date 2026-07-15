@@ -103,6 +103,34 @@ describe('executor circle', () => {
     expect(stackTraceTest).stringIncludesSubstring('This is test error');
   });
 
+  it('[p] circleExecutor shares cache from a producer to a consumer command', async () => {
+    // producer publishes an entity on stdout, consumer requests it via --use-shared-cache.
+    // `--` hands the flag to the eval script's argv (otherwise node itself would parse it).
+    // the consumer JSON.parses the resolved --cache value to prove it is parseable inside the process.
+    const producer = `node -e 'console.log("shared-cache: " + JSON.stringify(JSON.stringify({scope:"circle-scope",data:{n:7}})))'`;
+    const consumer = `node -e 'const a = (process.argv.find(x => x.startsWith("--cache=")) || "").slice(8); const p = JSON.parse(a); console.log("PARSED:" + p["circle-scope"][0].n); process.exit(1)' -- --use-shared-cache={"circle-scope":1}`;
+
+    let captured = '';
+    await circleExecutor(
+      {
+        // single thread + producer first guarantees the cache is populated before the consumer runs
+        maxThreads: 1,
+        attemptsCount: 1,
+        longestProcessTime: 20_000,
+        pollTime: 10,
+        processResultAnalyzer: (_cmd: string, stackTrace: string) => {
+          captured += stackTrace;
+          return true;
+        },
+      },
+      [producer, consumer],
+    );
+
+    // the child JSON.parsed the resolved --cache argument and read the entity back
+    expect(captured).stringIncludesSubstring('PARSED:7');
+    expect(captured).stringNotIncludesSubstring('--use-shared-cache');
+  });
+
   it('[p] circleExecutor successExitCode', async () => {
     const commands = [`node -e 'setTimeout(() => {console.log("Success first"); process.exit(100)}, 1000)'`];
 

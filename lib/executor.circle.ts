@@ -9,6 +9,9 @@ import {
   internalLogIteractionCycle,
   internalLogMiddleResultsCycle,
 } from './logger.execution';
+import { addToSharedCache, applySharedCache, type TSharedCache } from './shared.cache';
+
+const cache: TSharedCache = {};
 
 async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: string[]; notRetriable: string[] }> {
   const notRetriable: string[] = [];
@@ -48,6 +51,8 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
 
   logStartCycle(maxThreads, attemptsCount, commandsArray);
 
+
+
   const executeCommandAsync = buildCommandExecutor(notRetriable, {
     currentExecutionVariable,
     longestProcessTime,
@@ -59,6 +64,7 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     onExitCloseProcess,
     onErrorProcess,
     execOpts,
+    onCache: (published: { scope: string; data: any }) => addToSharedCache(cache, published),
   });
 
   async function runCommand(commands, retriable, runIndex) {
@@ -71,8 +77,10 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
 
       const commandToExecute = commands.splice(0, 1)[0];
       if (isString(commandToExecute)) {
-        const index = inProgressCommands.push(commandToExecute) - 1;
-        result = await executeCommandAsync(commandToExecute, runIndex).catch(error => logger.error(error));
+        // resolve --use-shared-cache against the shared cache (consumes the requested entities)
+        const cmdToExecute = applySharedCache(cache, commandToExecute);
+        const index = inProgressCommands.push(cmdToExecute) - 1;
+        result = await executeCommandAsync(cmdToExecute, runIndex).catch(error => logger.error(error));
         inProgressCommands.splice(index, 1);
       } else if (isFunction(commandToExecute) || isAsyncFunction(commandToExecute)) {
         const index = inProgressCommands.push(commandToExecute.toString()) - 1;

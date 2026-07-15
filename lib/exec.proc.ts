@@ -18,6 +18,7 @@ function buildExecRunner(notRetriable, runOpts) {
     logProcessResult = internalLogProcessResult,
     onExitCloseProcess,
     onErrorProcess,
+    onCache,
   } = runOpts;
 
   if (!isNumber(successExitCode)) {
@@ -28,7 +29,7 @@ function buildExecRunner(notRetriable, runOpts) {
     new Promise(resolve => {
       const onErrorCloseHandler: any = null;
 
-      const executionHolder = { stackTrace: '' };
+      const executionHolder: { stackTrace: string; cache?: unknown[] } = { stackTrace: '' };
       /**
        * @now this variable will be used for process kill if time more than @longestProcessTime
        */
@@ -49,7 +50,7 @@ function buildExecRunner(notRetriable, runOpts) {
           ? cmd.replace(new RegExp(`${currentExecutionVariable}=\\d+`, 'ig'), `${currentExecutionVariable}=${index}`)
           : `${currentExecutionVariable}=${index} ${cmd}`;
       }
-      const execProc = execute(cmd, logProcessResult, executionHolder, execOpts);
+      const execProc = execute({ cmd, logProcessResult, executionHolder, execOpts });
 
       /**
        * Send a signal to the whole detached process group (negative pid) so that
@@ -129,6 +130,14 @@ function buildExecRunner(notRetriable, runOpts) {
 
         // clear watcher interval
         clearInterval(watcher);
+
+        // if the process published shared cache entries on its stdout - hand each to the
+        // executor; empty the buffer so a re-emitted `close` (manual kill path) can't
+        // deliver the same entries twice
+        if (Array.isArray(executionHolder.cache) && executionHolder.cache.length && isFunction(onCache)) {
+          executionHolder.cache.forEach(entry => onCache(entry));
+          executionHolder.cache = [];
+        }
 
         if (onErrorCloseHandler && (isFunction(onErrorCloseHandler) || isAsyncFunction(onErrorCloseHandler))) {
           await onErrorCloseHandler();
