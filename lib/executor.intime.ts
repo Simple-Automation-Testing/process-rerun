@@ -1,9 +1,14 @@
-import { isString, isFunction, isAsyncFunction } from 'sat-utils';
+import { isString, isFunction, isAsyncFunction, isNumber } from 'sat-utils';
 import { buildCommandExecutor } from './command.executor.builder';
 import { sleep } from './helpers';
 import { logger } from './logger';
-import { internalLogStartCycle, internalLogEndCycle, internalLogIntimeCommand } from './logger.execution';
-import { addToSharedCache, applySharedCache, type TSharedCache } from './shared.cache';
+import {
+  internalLogStartCycle,
+  internalLogEndCycle,
+  internalLogIntimeCommand,
+  internalLogMiddleResultsCycle,
+} from './logger.execution';
+import { addToSharedCache, applySharedCache, prefillSharedCache, type TSharedCache } from './shared.cache';
 
 import type { TBuildOpts } from './lib.types';
 
@@ -28,12 +33,17 @@ async function intimeExecutor(
     currentExecutionVariable,
     maxThreads,
     watcher,
+    logProcessesProgress,
     logStartCycle = internalLogStartCycle,
     logEndCycle = internalLogEndCycle,
     logIntimeCommand = internalLogIntimeCommand,
+    logMiddleResultsCycle = internalLogMiddleResultsCycle,
     execOpts,
     sharedCacheVia,
+    sharedCache,
   } = runOptions;
+
+  prefillSharedCache(cache, sharedCache);
 
   const executeCommandAsync = buildCommandExecutor(notRetriable, {
     currentExecutionVariable,
@@ -108,6 +118,13 @@ async function intimeExecutor(
         5000,
       );
 
+    const progressLogger =
+      logProcessesProgress &&
+      setInterval(
+        () => logMiddleResultsCycle(initialCommandsCount, Array.from(inProgressCommands)),
+        isNumber(logProcessesProgress) ? (logProcessesProgress as number) : 5000,
+      );
+
     do {
       if (commands.length) {
         await runCommand(commands);
@@ -124,6 +141,10 @@ async function intimeExecutor(
 
     if (watcherRunner) {
       clearInterval(watcherRunner);
+    }
+
+    if (progressLogger) {
+      clearInterval(progressLogger);
     }
 
     return commands;

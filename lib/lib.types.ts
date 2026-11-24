@@ -24,6 +24,12 @@ export type TBuildOpts = {
    * 'env' removes the argument and prepends a PROCESS_RERUN_CACHE='<json>' env assignment.
    */
   sharedCacheVia?: 'arg' | 'env';
+  /**
+   * Entities to put into the shared cache before the execution starts, grouped by scope:
+   * { [scope]: [entity, ...] }. Commands consume them via --use-shared-cache exactly like
+   * entities published by other processes.
+   */
+  sharedCache?: { [scope: string]: unknown[] };
   logStartCycle?: (maxThreads: number | string, attemptsCount: number | string, inTimeCommands: string[]) => void;
   logEndCycle?: (retriable: string[], notRetriable: string[], startTime: number) => void;
   logIteractionCycle?: (cycleNumber: number, commands: string[]) => void;

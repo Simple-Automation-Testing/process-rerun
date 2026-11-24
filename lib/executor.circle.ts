@@ -9,7 +9,7 @@ import {
   internalLogIteractionCycle,
   internalLogMiddleResultsCycle,
 } from './logger.execution';
-import { addToSharedCache, applySharedCache, type TSharedCache } from './shared.cache';
+import { addToSharedCache, applySharedCache, prefillSharedCache, type TSharedCache } from './shared.cache';
 
 const cache: TSharedCache = {};
 
@@ -40,7 +40,10 @@ async function circleExecutor(runOptions, commandsArray): Promise<{ retriable: s
     onErrorProcess,
     execOpts,
     sharedCacheVia,
+    sharedCache,
   } = runOptions;
+
+  prefillSharedCache(cache, sharedCache);
 
   /**
    * @see

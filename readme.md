@@ -199,6 +199,28 @@ runner([
 ]);
 ```
 
+### Prefilling the cache before the run — `sharedCache` option
+
+Entities don't have to come from a producer process. Pass them up front with the
+`sharedCache` build option, grouped by scope; they are put into the cache before the
+first command starts and are consumed via `--use-shared-cache` like any published entity:
+
+```js
+const runner = getReruner({
+  sharedCache: {
+    auth: [{ token: 'abc123', userId: 7 }, { token: 'def456', userId: 8 }],
+  },
+});
+
+await runner([
+  'my-runner --use-shared-cache={"auth":1}', // gets userId 7
+  'my-runner --use-shared-cache={"auth":1}', // gets userId 8
+]);
+```
+
+Prefilled entities are appended to whatever the scope already holds, and the arrays you
+pass are copied, so consuming entities never mutates your object.
+
 ### Notes and guarantees
 
 - **Ordering is your responsibility.** A consumer only sees what has already been published

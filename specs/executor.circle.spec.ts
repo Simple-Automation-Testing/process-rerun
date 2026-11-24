@@ -131,6 +131,79 @@ describe('executor circle', () => {
     expect(captured).stringNotIncludesSubstring('--use-shared-cache');
   });
 
+  it('[p] circleExecutor hands prefilled entities to consumers in order and stops when exhausted', async () => {
+    // consumers request one entity each; the third finds the scope empty and gets no --cache arg
+    const consumer = (tag: string) =>
+      `node -e 'const a = (process.argv.find(x => x.startsWith("--cache=")) || "").slice(8); const p = a ? JSON.parse(a) : {}; console.log("${tag}:" + ((p["circle-prefill"] || [])[0] || {}).userId); process.exit(1)' -- --use-shared-cache={"circle-prefill":1}`;
+
+    let captured = '';
+    await circleExecutor(
+      {
+        maxThreads: 1,
+        attemptsCount: 1,
+        longestProcessTime: 20_000,
+        pollTime: 10,
+        sharedCache: { 'circle-prefill': [{ userId: 7 }, { userId: 8 }] },
+        processResultAnalyzer: (_cmd: string, stackTrace: string) => {
+          captured += stackTrace;
+          return true;
+        },
+      },
+      [consumer('FIRST'), consumer('SECOND'), consumer('THIRD')],
+    );
+
+    expect(captured).stringIncludesSubstring('FIRST:7');
+    expect(captured).stringIncludesSubstring('SECOND:8');
+    expect(captured).stringIncludesSubstring('THIRD:undefined');
+    expect(captured).stringNotIncludesSubstring('--use-shared-cache');
+  });
+
+  it('[p] circleExecutor delivers prefilled entities via env var when sharedCacheVia is "env"', async () => {
+    const consumer = `node -e 'const c = JSON.parse(process.env.PROCESS_RERUN_CACHE || "{}"); console.log("ENV:" + (c["circle-prefill-env"] || []).map(e => e.token).join(",")); process.exit(1)' --use-shared-cache={"circle-prefill-env":2}`;
+
+    let captured = '';
+    await circleExecutor(
+      {
+        maxThreads: 1,
+        attemptsCount: 1,
+        longestProcessTime: 20_000,
+        pollTime: 10,
+        sharedCacheVia: 'env',
+        sharedCache: { 'circle-prefill-env': [{ token: 'a' }, { token: 'b' }] },
+        processResultAnalyzer: (_cmd: string, stackTrace: string) => {
+          captured += stackTrace;
+          return true;
+        },
+      },
+      [consumer],
+    );
+
+    expect(captured).stringIncludesSubstring('ENV:a,b');
+  });
+
+  it('[p] circleExecutor serves prefilled entities before ones published by a producer', async () => {
+    const producer = `node -e 'console.log("shared-cache: " + JSON.stringify(JSON.stringify({scope:"circle-prefill-mix",data:"published"})))'`;
+    const consumer = `node -e 'const a = (process.argv.find(x => x.startsWith("--cache=")) || "").slice(8); console.log("MIX:" + JSON.parse(a)["circle-prefill-mix"].join(",")); process.exit(1)' -- --use-shared-cache={"circle-prefill-mix":2}`;
+
+    let captured = '';
+    await circleExecutor(
+      {
+        maxThreads: 1,
+        attemptsCount: 1,
+        longestProcessTime: 20_000,
+        pollTime: 10,
+        sharedCache: { 'circle-prefill-mix': ['seeded'] },
+        processResultAnalyzer: (_cmd: string, stackTrace: string) => {
+          captured += stackTrace;
+          return true;
+        },
+      },
+      [producer, consumer],
+    );
+
+    expect(captured).stringIncludesSubstring('MIX:seeded,published');
+  });
+
   it('[p] circleExecutor successExitCode', async () => {
     const commands = [`node -e 'setTimeout(() => {console.log("Success first"); process.exit(100)}, 1000)'`];
 

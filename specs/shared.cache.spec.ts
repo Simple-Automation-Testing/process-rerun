@@ -1,6 +1,6 @@
 import { expect } from 'assertior';
 import { getCache } from '../lib/exec';
-import { addToSharedCache, collectSharedCache, applySharedCache, type TSharedCache } from '../lib/shared.cache';
+import { addToSharedCache, prefillSharedCache, collectSharedCache, applySharedCache, type TSharedCache } from '../lib/shared.cache';
 
 describe('shared cache - getCache (stdout extraction)', () => {
   it('extracts a json payload emitted as shared-cache: "..."', () => {
@@ -165,5 +165,99 @@ describe('shared cache - applySharedCache (command rewrite)', () => {
     const cmd = applySharedCache(cache, 'node run.js --use-shared-cache={"auth":1} --flag', 'env');
 
     expect(cmd).toEqual('node run.js --flag');
+  });
+});
+
+describe('shared cache - prefillSharedCache', () => {
+  it('seeds empty scopes and appends to existing ones', () => {
+    const cache: TSharedCache = { a: [1] };
+    prefillSharedCache(cache, { a: [2, 3], b: ['x'] });
+    expect(cache).toDeepEqual({ a: [1, 2, 3], b: ['x'] });
+  });
+
+  it('does not mutate the arrays it was given when entities are consumed', () => {
+    const initial = { a: [1, 2] };
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, initial);
+    collectSharedCache(cache, 'cmd --use-shared-cache={"a":2}');
+    expect(initial).toDeepEqual({ a: [1, 2] });
+    expect(cache).toDeepEqual({ a: [] });
+  });
+
+  it('does not mutate the arrays it was given when the cache scope is appended to later', () => {
+    const initial = { a: [1] };
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, initial);
+    addToSharedCache(cache, { scope: 'a', data: 2 });
+    expect(initial).toDeepEqual({ a: [1] });
+    expect(cache).toDeepEqual({ a: [1, 2] });
+  });
+
+  it('keeps entity order so prefilled entities are consumed first-in first-out', () => {
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, { auth: [{ userId: 7 }, { userId: 8 }, { userId: 9 }] });
+    expect(collectSharedCache(cache, 'cmd --use-shared-cache={"auth":1}')).toDeepEqual({ auth: [{ userId: 7 }] });
+    expect(collectSharedCache(cache, 'cmd --use-shared-cache={"auth":2}')).toDeepEqual({
+      auth: [{ userId: 8 }, { userId: 9 }],
+    });
+    expect(collectSharedCache(cache, 'cmd --use-shared-cache={"auth":1}')).toDeepEqual({ auth: [] });
+  });
+
+  it('serves prefilled entities before entities published during the run', () => {
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, { auth: ['seeded'] });
+    addToSharedCache(cache, { scope: 'auth', data: 'published' });
+    expect(collectSharedCache(cache, 'cmd --use-shared-cache={"auth":2}')).toDeepEqual({
+      auth: ['seeded', 'published'],
+    });
+  });
+
+  it('prefills several scopes and lets one command request them together', () => {
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, { a: [1, 2], b: ['x'] });
+    expect(collectSharedCache(cache, 'cmd --use-shared-cache={"a":1,"b":1}')).toDeepEqual({ a: [1], b: ['x'] });
+    expect(cache).toDeepEqual({ a: [2], b: [] });
+  });
+
+  it('accepts an empty scope list without creating entities', () => {
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, { a: [] });
+    expect(cache).toDeepEqual({ a: [] });
+    expect(applySharedCache(cache, 'cmd --use-shared-cache={"a":1}')).toEqual('cmd');
+  });
+
+  it('feeds prefilled entities into the --cache argument rewrite', () => {
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, { auth: [{ token: 'abc' }] });
+    expect(applySharedCache(cache, 'cmd --use-shared-cache={"auth":1}')).toEqual(
+      `cmd --cache='{"auth":[{"token":"abc"}]}'`,
+    );
+  });
+
+  it('feeds prefilled entities into the env assignment when via is "env"', () => {
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, { auth: [{ token: 'abc' }] });
+    expect(applySharedCache(cache, 'cmd --use-shared-cache={"auth":1}', 'env')).toEqual(
+      `PROCESS_RERUN_CACHE='{"auth":[{"token":"abc"}]}' cmd`,
+    );
+  });
+
+  it('ignores non-object input (array, primitive, null)', () => {
+    const cache: TSharedCache = { a: [1] };
+    // @ts-expect-error - guarding runtime behaviour
+    prefillSharedCache(cache, [1, 2]);
+    // @ts-expect-error - guarding runtime behaviour
+    prefillSharedCache(cache, 'nope');
+    // @ts-expect-error - guarding runtime behaviour
+    prefillSharedCache(cache, null);
+    expect(cache).toDeepEqual({ a: [1] });
+  });
+
+  it('ignores missing/invalid input and non-array scopes', () => {
+    const cache: TSharedCache = {};
+    prefillSharedCache(cache, undefined);
+    // @ts-expect-error - guarding runtime behaviour
+    prefillSharedCache(cache, { a: 'nope', b: [1] });
+    expect(cache).toDeepEqual({ b: [1] });
   });
 });

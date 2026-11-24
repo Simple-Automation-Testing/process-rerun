@@ -27,6 +27,28 @@ function addToSharedCache(cache: TSharedCache, published: { scope: string; data:
 }
 
 /**
+ * Prefills the shared cache with entities supplied before the execution starts
+ * (the `sharedCache` build option), so commands can consume them via
+ * --use-shared-cache without any producer process. Entities are appended to the
+ * scopes that already exist; the caller's arrays are copied, never consumed.
+ */
+function prefillSharedCache(cache: TSharedCache, initial?: TSharedCache) {
+  if (!initial) return;
+  if (typeof initial !== 'object' || Array.isArray(initial)) {
+    logger.warn('sharedCache option should be an object of { [scope: string]: unknown[] }');
+    return;
+  }
+  for (const [scope, entities] of Object.entries(initial)) {
+    if (!Array.isArray(entities)) {
+      logger.warn(`sharedCache entities for scope "${scope}" should be an array`);
+      continue;
+    }
+    if (cache[scope]) cache[scope].push(...entities);
+    else cache[scope] = [...entities];
+  }
+}
+
+/**
  * A command can request entities produced by earlier commands via a
  *   --use-shared-cache={"<scope>": <amount>, ...}
  * argument, where each key is a cache scope and each number is how many entities
@@ -100,5 +122,5 @@ function applySharedCache(cache: TSharedCache, cmd: string, via: TSharedCacheVia
   return cmd.replace(USE_SHARED_CACHE_ARG, `--cache=${value}`);
 }
 
-export { addToSharedCache, collectSharedCache, applySharedCache, SHARED_CACHE_ENV_VAR };
+export { addToSharedCache, prefillSharedCache, collectSharedCache, applySharedCache, SHARED_CACHE_ENV_VAR };
 export type { TSharedCache, TSharedCacheVia };
